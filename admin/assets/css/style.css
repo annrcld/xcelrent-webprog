@@ -1,0 +1,273 @@
+:root {
+    --red: #e63946;
+    --black: #000000;
+    --dark-bg: #121212;
+    --card-bg: #ffffff;
+    --white: #ffffff;
+    --text-grey: #666666;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #f4f4f4;
+    color: var(--black);
+
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    display: flex;
+    height: 100vh;
+    min-height: 100vh;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: var(--black);
+    color: var(--white);
+    border-right: 4px solid var(--red);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+.logo-area {
+    padding: 30px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid #333;
+}
+.logo-text {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -1px;
+}
+.logo-text span {
+    color: var(--red);
+}
+.logo-icon {
+    color: var(--red);
+    font-size: 20px;
+}
+
+/* Sidebar navigation */
+.sidebar-nav {
+    flex: 1;
+    padding: 20px 0;
+    box-sizing: border-box;
+}
+
+/* Make both anchors and buttons behave the same */
+.sidebar-nav a.nav-btn,
+.sidebar-nav button.nav-btn {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    background: transparent;
+    color: #aaa;
+    padding: 15px 30px;
+    text-align: left;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    text-decoration: none; /* remove underline for anchors */
+    outline: none;
+}
+
+/* Ensure icons inside nav items don't receive underlines or pointer events */
+.sidebar-nav a.nav-btn i,
+.sidebar-nav button.nav-btn i {
+    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Hover / active - full width background, no underline */
+.sidebar-nav a.nav-btn:hover,
+.sidebar-nav a.nav-btn.active,
+.sidebar-nav button.nav-btn:hover,
+.sidebar-nav button.nav-btn.active {
+    background: var(--red);
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Focus visible for accessibility */
+.sidebar-nav a.nav-btn:focus,
+.sidebar-nav button.nav-btn:focus {
+    box-shadow: 0 0 0 3px rgba(230,57,70,0.12);
+}
+
+/* Content area */
+.main-content {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+    box-sizing: border-box;
+    min-width: 0;
+}
+.tab-content {
+    display: none;
+}
+.tab-content.active {
+    display: block;
+}
+.page-title {
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+
+/* KPI Cards */
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+.kpi-card {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.kpi-card h3 {
+    font-size: 12px;
+    color: var(--text-grey);
+    text-transform: uppercase;
+    margin: 0;
+}
+.kpi-card p {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 10px 0 0;
+}
+.red-border {
+    border-top: 4px solid var(--red);
+}
+
+/* Forms */
+.entry-form {
+    background: var(--white);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+.form-section {
+    margin-bottom: 25px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 20px;
+}
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-top: 10px;
+}
+input, select, textarea {
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    background: #fff;
+    color: #222;
+}
+input:focus, select:focus, textarea:focus {
+    border-color: var(--red);
+    outline: none;
+}
+
+.info-circle {
+    background: var(--black);
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    cursor: help;
+    margin-left: 5px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-weight: bold;
+    border: none;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+.btn-red { background: var(--red); color: white; }
+.btn-black { background: var(--black); color: white; }
+.submit-btn { width: 100%; margin-top: 20px; font-size: 16px; }
+
+/* Counter Control */
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.controls button {
+    background: var(--black);
+    color: white;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+}
+
+/* Tables and panels */
+.panel {
+    background: var(--white);
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.data-table th,
+.data-table td {
+    padding: 12px 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    font-size: 14px;
+}
+.data-table thead th {
+    background: #fafafa;
+    font-weight: 700;
+    color: #444;
+}
+
+/* Responsive tweaks */
+@media (max-width: 980px) {
+    .sidebar {
+        width: 220px;
+    }
+    .kpi-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 680px) {
+    .app-container { flex-direction: column; height: auto; }
+    .sidebar { width: 100%; display: flex; flex-direction: row; align-items: center; padding: 10px; gap: 10px; }
+    .sidebar-nav { display: flex; gap: 8px; overflow-x: auto; padding: 10px; }
+    .sidebar-nav a.nav-btn,
+    .sidebar-nav button.nav-btn { padding: 10px 14px; font-size: 13px; white-space: nowrap; }
+    .main-content { padding: 20px; }
+}
+
+
+
