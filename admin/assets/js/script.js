@@ -25,10 +25,22 @@ function showTab(tabId, btn) {
 
 // Coding Day Logic
 function updateCoding() {
-    const plate = document.getElementById('plateInput').value || '';
+    const input = document.getElementById('plateInput');
     const display = document.getElementById('codingDisplay');
-    const lastDigit = plate.trim().slice(-1);
+    
+    // 1. Force Uppercase
+    let val = input.value.toUpperCase();
+    
+    // 2. Automatically add the dash after 3 letters
+    if (val.length === 3 && !val.includes('-')) {
+        val = val + '-';
+    }
+    
+    // 3. Limit the total length and update input value
+    input.value = val.substring(0, 8); 
 
+    // 4. Coding Day Logic
+    const lastDigit = input.value.trim().slice(-1);
     const codingMap = {
         '1': 'Monday', '2': 'Monday',
         '3': 'Tuesday', '4': 'Tuesday',
@@ -37,7 +49,12 @@ function updateCoding() {
         '9': 'Friday', '0': 'Friday'
     };
 
-    display.value = codingMap[lastDigit] || 'Invalid Plate';
+    // Only display coding if the format is complete (e.g., AAA-1111)
+    if (input.value.length === 8) {
+        display.value = codingMap[lastDigit] || 'Invalid Digit';
+    } else {
+        display.value = ''; // Keep empty until full plate is entered
+    }
 }
 
 // Seating Logic based on vehicle type

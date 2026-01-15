@@ -8,10 +8,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// 1. Collect Data
+// 1. Collect Data (Added fuel_type here)
 $brand = $_POST['brand'] ?? '';
 $model = $_POST['model'] ?? '';
 $category = $_POST['category'] ?? '';
+$fuel_type = $_POST['fuel_type'] ?? ''; // <--- NEW
 $seating = intval($_POST['seating'] ?? 0);
 $plate = $_POST['plate_number'] ?? '';
 $location = $_POST['location'] ?? '';
@@ -20,9 +21,16 @@ $location = $_POST['location'] ?? '';
 $conn->begin_transaction();
 
 try {
-    // Insert Main Vehicle Info
-    $stmt = $conn->prepare("INSERT INTO cars (brand, model, plate_number, category, seating, location, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'live', NOW())");
-    $stmt->bind_param("sssis s", $brand, $model, $plate, $category, $seating, $location);
+    // Insert Main Vehicle Info (Added fuel_type to columns and values)
+    $sql = "INSERT INTO cars (brand, model, plate_number, category, fuel_type, seating, location, status, created_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'live', NOW())";
+            
+    $stmt = $conn->prepare($sql);
+    
+    // Updated bind_param: "ssssis s" becomes "sssssis" 
+    // (5 strings, 1 integer, 1 string)
+    $stmt->bind_param("sssssis", $brand, $model, $plate, $category, $fuel_type, $seating, $location);
+    
     $stmt->execute();
     $car_id = $conn->insert_id;
 

@@ -8,11 +8,21 @@
             <div class="form-row">
                 <input type="text" placeholder="Brand" name="brand" required>
                 <input type="text" placeholder="Model" name="model" required>
-                <select id="vType" name="category" required>
+                <select id="vType" name="category" onchange="handleTypeChange()" required>
                     <option value="">-- Select Category --</option>
                     <option value="Sedan">Sedan</option>
                     <option value="SUV">SUV</option>
                     <option value="Van">Van</option>
+                </select>
+                <select name="fuel_type" required>
+                    <option value="">-- Fuel Type --</option>
+                    <option value="Gasoline">Gasoline</option>
+                    <option value="Diesel">Diesel</option>
+                </select>
+                <select name="driver_type" required>
+                    <option value="">-- Driver Type --</option>
+                    <option value="self_drive">Self Drive</option>
+                    <option value="with_driver">With Driver</option>
                 </select>
             </div>
         </div>
@@ -28,7 +38,15 @@
                         <button type="button" onclick="adjustSeating(1)">+</button>
                     </div>
                 </div>
-                <input type="text" id="plateInput" placeholder="Plate Number" name="plate_number" onkeyup="updateCoding()" required>
+               <input type="text" 
+                    id="plateInput" 
+                    placeholder="AAA1111" 
+                    name="plate_number" 
+                    onkeyup="updateCoding()" 
+                    style="text-transform: uppercase;" 
+                    maxlength="7" 
+                    pattern="[A-Z]{3}-[0-9]{4}" 
+                    required>
                 <input type="text" id="codingDisplay" placeholder="Coding Day" name="coding_day" readonly class="bg-gray">
             </div>
         </div>
@@ -76,11 +94,11 @@
                 <div class="form-row">
                     <div class="price-input">
                         <label>12 Hours (₱)</label>
-                        <input type="number" name="tier1_12hrs" placeholder="1399" step="0.01">
+                        <input type="number" name="tier1_12hrs" placeholder="1399" step="0.01" min="1" required>
                     </div>
                     <div class="price-input">
                         <label>24 Hours (₱)</label>
-                        <input type="number" name="tier1_24hrs" placeholder="1799" step="0.01">
+                        <input type="number" name="tier1_24hrs" placeholder="1799" step="0.01" min="1" required>
                     </div>
                 </div>
             </div>
@@ -90,11 +108,11 @@
                 <div class="form-row">
                     <div class="price-input">
                         <label>12 Hours (₱)</label>
-                        <input type="number" name="tier2_12hrs" placeholder="1899" step="0.01">
+                        <input type="number" name="tier2_12hrs" placeholder="1899" step="0.01" min="1" required>
                     </div>
                     <div class="price-input">
                         <label>24 Hours (₱)</label>
-                        <input type="number" name="tier2_24hrs" placeholder="2299" step="0.01">
+                        <input type="number" name="tier2_24hrs" placeholder="2299" step="0.01" min="1" required>
                     </div>
                 </div>
             </div>
@@ -104,11 +122,11 @@
                 <div class="form-row">
                     <div class="price-input">
                         <label>Any Point Luzon 24h (₱)</label>
-                        <input type="number" name="tier3_24hrs" placeholder="2799" step="0.01">
+                        <input type="number" name="tier3_24hrs" placeholder="2799" step="0.01" min="1" required>
                     </div>
                     <div class="price-input">
                         <label>Long Term Daily Rate (₱)</label>
-                        <input type="number" name="tier4_daily" placeholder="2000" step="0.01">
+                        <input type="number" name="tier4_daily" placeholder="2000" step="0.01" min="1" required>
                     </div>
                 </div>
             </div>
