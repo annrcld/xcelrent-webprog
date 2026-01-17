@@ -101,6 +101,45 @@ body {
     box-shadow: 0 0 0 3px rgba(230,57,70,0.12);
 }
 
+.sidebar-footer {
+    border-top: 1px solid #333;
+    padding: 20px 0;
+}
+
+.sidebar-footer .nav-btn.logout-link {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+    border: none;
+    background: transparent;
+    color: #aaa;
+    padding: 15px 30px;
+    text-align: left;
+    align-items: center;
+    gap: 12px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+    text-decoration: none;
+    outline: none;
+}
+
+.sidebar-footer .nav-btn.logout-link i {
+    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.sidebar-footer .nav-btn.logout-link:hover {
+    background: var(--red);
+    color: #fff;
+    text-decoration: none;
+}
+
+.sidebar-footer .nav-btn.logout-link:focus {
+    box-shadow: 0 0 0 3px rgba(230,57,70,0.12);
+}
+
 .main-content {
     flex: 1;
     padding: 40px;

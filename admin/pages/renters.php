@@ -6,7 +6,7 @@
 <!-- Renter Data -->
 <section id="renters" class="tab-content active">
     <h1 class="page-title">Renter Data</h1>
-    <p style="color: #666; margin-bottom: 20px;">Your customer database and security archives.</p>
+    <p style="color: #666; margin-bottom: 20px;">Customer database and security archives.</p>
     
     <div class="panel">
         <div style="margin-bottom: 20px;">

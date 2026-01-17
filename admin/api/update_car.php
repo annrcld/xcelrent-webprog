@@ -21,7 +21,7 @@ $category = trim($_POST['category'] ?? '');
 $fuel_type = trim($_POST['fuel_type'] ?? '');
 $driver_type = trim($_POST['driver_type'] ?? '');
 $seating = intval($_POST['seating'] ?? 0);
-$plate = trim($_POST['plate_number'] ?? '');
+$plate = strtoupper(trim($_POST['plate_number'] ?? '')); // Auto-uppercase plate number
 $location = trim($_POST['location'] ?? '');
 
 // Pricing
@@ -36,12 +36,6 @@ $tier4_daily = floatval($_POST['tier4_daily'] ?? 0);
 if (empty($brand) || empty($model) || empty($category) || empty($fuel_type) || empty($driver_type) ||
     empty($plate) || empty($location) || $seating <= 0) {
     echo json_encode(['success' => false, 'msg' => 'Please fill all required fields.']);
-    exit;
-}
-
-// Validate plate number format (3 letters + dash + 3 or 4 digits)
-if (!preg_match('/^[A-Z]{3}-\d{3,4}$/i', $plate)) {
-    echo json_encode(['success' => false, 'msg' => 'Plate number must be in format AAA-111 or AAA-1111.']);
     exit;
 }
 

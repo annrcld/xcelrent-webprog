@@ -160,8 +160,8 @@ const urlParams = new URLSearchParams(window.location.search);
 const editId = urlParams.get('edit_id');
 
 if (editId) {
-    document.getElementById('formTitle').textContent = 'Edit Vehicle';
-    document.getElementById('submitBtn').textContent = 'Update Vehicle';
+    document.getElementById('formTitle').textContent = 'Edit Car';
+    document.getElementById('submitBtn').textContent = 'Update changes';
     loadCarData(editId);
 }
 

@@ -26,7 +26,7 @@
     </nav>
 
     <div class="sidebar-footer">
-        <a href="logout.php" class="nav-btn logout-link" onclick="return confirm('Are you sure you want to log out?')">
+        <a href="logout.php" class="nav-btn logout-link" onclick="return confirm('Are you sure you want to log out?');">
             <i data-lucide="log-out"></i> Logout
         </a>
     </div>
