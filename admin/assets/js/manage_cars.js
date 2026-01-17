@@ -77,7 +77,13 @@ function editCar(id) {
 
 function deleteCar(id) {
     if(confirm("Are you sure you want to delete this vehicle? This cannot be undone.")) {
-        fetch(`api/delete_car.php?id=${id}`)
+        fetch('api/delete_car.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 'id=' + encodeURIComponent(id)
+        })
         .then(res => res.json())
         .then(res => {
             alert(res.msg);

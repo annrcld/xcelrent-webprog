@@ -19,6 +19,7 @@ $brand = trim($_POST['brand'] ?? '');
 $model = trim($_POST['model'] ?? '');
 $category = trim($_POST['category'] ?? '');
 $fuel_type = trim($_POST['fuel_type'] ?? '');
+$driver_type = trim($_POST['driver_type'] ?? '');
 $seating = intval($_POST['seating'] ?? 0);
 $plate = trim($_POST['plate_number'] ?? '');
 $location = trim($_POST['location'] ?? '');
@@ -32,29 +33,35 @@ $tier3_24hrs = floatval($_POST['tier3_24hrs'] ?? 0);
 $tier4_daily = floatval($_POST['tier4_daily'] ?? 0);
 
 // Validate
-if (empty($brand) || empty($model) || empty($category) || empty($fuel_type) || 
+if (empty($brand) || empty($model) || empty($category) || empty($fuel_type) || empty($driver_type) ||
     empty($plate) || empty($location) || $seating <= 0) {
     echo json_encode(['success' => false, 'msg' => 'Please fill all required fields.']);
     exit;
 }
 
-if ($tier1_12hrs <= 0 || $tier1_24hrs <= 0 || 
-    $tier2_12hrs <= 0 || $tier2_24hrs <= 0 || 
+// Validate plate number format (3 letters + dash + 3 or 4 digits)
+if (!preg_match('/^[A-Z]{3}-\d{3,4}$/i', $plate)) {
+    echo json_encode(['success' => false, 'msg' => 'Plate number must be in format AAA-111 or AAA-1111.']);
+    exit;
+}
+
+if ($tier1_12hrs <= 0 || $tier1_24hrs <= 0 ||
+    $tier2_12hrs <= 0 || $tier2_24hrs <= 0 ||
     $tier3_24hrs <= 0 || $tier4_daily <= 0) {
     echo json_encode(['success' => false, 'msg' => 'All prices must be greater than zero.']);
     exit;
 }
 
 try {
-    $sql = "UPDATE cars SET 
-        brand = ?, model = ?, plate_number = ?, category = ?, fuel_type = ?, seating = ?, location = ?,
+    $sql = "UPDATE cars SET
+        brand = ?, model = ?, plate_number = ?, category = ?, fuel_type = ?, driver_type = ?, seating = ?, location = ?,
         tier1_12hrs = ?, tier1_24hrs = ?, tier2_12hrs = ?, tier2_24hrs = ?, tier3_24hrs = ?, tier4_daily = ?
         WHERE id = ?";
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param(
-        "sssssisddddddi",
-        $brand, $model, $plate, $category, $fuel_type, $seating, $location,
+        "ssssssisddddddi",
+        $brand, $model, $plate, $category, $fuel_type, $driver_type, $seating, $location,
         $tier1_12hrs, $tier1_24hrs, $tier2_12hrs, $tier2_24hrs, $tier3_24hrs, $tier4_daily,
         $car_id
     );

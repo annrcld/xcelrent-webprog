@@ -1,11 +1,11 @@
 <section id="add-car" class="tab-content active">
     <h1 class="page-title"><span id="formTitle">Add New Car</span></h1>
-    
+
     <form class="entry-form" id="carForm" method="POST" enctype="multipart/form-data">
-        
+
         <!-- Hidden field for edit mode -->
         <input type="hidden" name="car_id" id="carId" value="">
-        
+
         <div class="form-section">
             <h3>Vehicle Identity</h3>
             <div class="form-row">
@@ -41,14 +41,13 @@
                         <button type="button" onclick="adjustSeating(1)">+</button>
                     </div>
                 </div>
-               <input type="text" 
-                    id="plateInput" 
-                    placeholder="AAA-1111" 
-                    name="plate_number" 
-                    onkeyup="updateCoding()" 
-                    style="text-transform: uppercase;" 
-                    maxlength="8" 
-                    pattern="[A-Z]{3}-[0-9]{4}" 
+               <input type="text"
+                    id="plateInput"
+                    placeholder="AAA-1111"
+                    name="plate_number"
+                    oninput="updateCoding()"
+                    style="text-transform: uppercase;"
+                    maxlength="8"
                     required>
                 <input type="text" id="codingDisplay" placeholder="Coding Day" name="coding_day" readonly class="bg-gray">
             </div>
@@ -57,7 +56,7 @@
         <div class="form-section">
             <h3>Documentation Requirements</h3>
             <p style="font-size: 13px; color: #666; margin-bottom: 15px;">Please upload clear copies of the following documents (PDF, JPG, PNG).</p>
-            
+
             <div class="form-row">
                 <div class="file-group">
                     <label>Official Receipt (OR)</label>
@@ -73,7 +72,7 @@
                 </div>
             </div>
 
-            <div class="form-row mt-2">
+            <div class="form-row">
                 <div class="file-group">
                     <label>Deed of Sale</label>
                     <input type="file" name="deed_of_sale" accept=".pdf,.jpg,.jpeg,.png">
@@ -91,7 +90,7 @@
 
         <div class="form-section">
             <h3>Pricing Tiers</h3>
-            
+
             <div class="pricing-tier-section">
                 <h4>Metro Manila (NCR)</h4>
                 <div class="form-row">
@@ -151,19 +150,6 @@
             </div>
         </div>
 
-        <div class="form-section">
-            <h3>Car Image</h3>
-            <div class="form-row">
-                <div class="file-group">
-                    <label>Upload Car Image</label>
-                    <input type="file" name="car_image" accept=".jpg,.jpeg,.png" id="carImageInput">
-                </div>
-            </div>
-            <div id="imagePreview" class="mt-2" style="display: none;">
-                <img id="previewImg" src="" alt="Image Preview" style="max-width: 200px; max-height: 150px; border-radius: 8px;">
-            </div>
-        </div>
-
         <button type="submit" id="submitBtn" class="btn btn-red submit-btn">Save Vehicle to Inventory</button>
     </form>
 </section>
@@ -203,6 +189,12 @@ function loadCarData(id) {
             document.querySelector('[name="plate_number"]').value = car.plate_number || '';
             document.querySelector('[name="location"]').value = car.location || '';
 
+            // Update coding day based on loaded plate number
+            setTimeout(() => {
+                const plate = document.querySelector('[name="plate_number"]').value;
+                document.getElementById('codingDisplay').value = getCodingDay(plate);
+            }, 100);
+
             // Pricing
             document.querySelector('[name="tier1_12hrs"]').value = car.tier1_12hrs || '';
             document.querySelector('[name="tier1_24hrs"]').value = car.tier1_24hrs || '';
@@ -221,19 +213,6 @@ function loadCarData(id) {
             console.error(err);
         });
 }
-
-// Image preview functionality
-document.getElementById('carImageInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            document.getElementById('previewImg').src = event.target.result;
-            document.getElementById('imagePreview').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    }
-});
 
 // Handle form submission
 document.getElementById('carForm').addEventListener('submit', function(e) {
@@ -272,19 +251,29 @@ function adjustSeating(delta) {
 
 // Plate coding logic (optional)
 function updateCoding() {
-    const plate = document.getElementById('plateInput').value.toUpperCase();
+    let plate = document.getElementById('plateInput').value.toUpperCase();
+
+    // Auto-add dash after 3 letters
+    if (plate.length === 3 && !plate.includes('-')) {
+        plate = plate + '-';
+        document.getElementById('plateInput').value = plate;
+    }
+
     document.getElementById('codingDisplay').value = getCodingDay(plate);
 }
 
 function getCodingDay(plate) {
-    if (!plate.match(/^[A-Z]{3}-[0-9]{4}$/)) return '';
+    // Match plates with format: 3 letters + dash + 3 or 4 digits (e.g., ABC-123 or ABC-1234)
+    const match = plate.match(/^[A-Z]{3}-\d{3,4}$/i);
+    if (!match) return '';
+
     const lastDigit = plate.slice(-1);
     switch(lastDigit) {
-        case '0': case '1': return 'Monday';
-        case '2': case '3': return 'Tuesday';
-        case '4': case '5': return 'Wednesday';
-        case '6': case '7': return 'Thursday';
-        case '8': case '9': return 'Friday';
+        case '1': case '2': return 'Monday';
+        case '3': case '4': return 'Tuesday';
+        case '5': case '6': return 'Wednesday';
+        case '7': case '8': return 'Thursday';
+        case '9': case '0': return 'Friday';
         default: return '';
     }
 }
