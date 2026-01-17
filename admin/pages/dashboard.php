@@ -15,7 +15,6 @@
         </div>
 </section>
 
-<?php
-// Re-open PHP tag here if you need more PHP logic *after* this HTML block
-// to generate content, handle forms, etc.
-?>
+<!-- At the bottom -->
+<script src="assets/js/core.js"></script>
+<script src="assets/js/dashboard.js"></script>

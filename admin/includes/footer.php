@@ -30,14 +30,11 @@
         </div>
     </div>
 
-    <script src="<?php echo ASSETS_URL; ?>js/script.js"></script>
-
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
-        });
+    document.addEventListener('DOMContentLoaded', () => {
+        lucide.createIcons();
+    });
     </script>
     
 </body>

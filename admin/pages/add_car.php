@@ -151,6 +151,19 @@
             </div>
         </div>
 
+        <div class="form-section">
+            <h3>Car Image</h3>
+            <div class="form-row">
+                <div class="file-group">
+                    <label>Upload Car Image</label>
+                    <input type="file" name="car_image" accept=".jpg,.jpeg,.png" id="carImageInput">
+                </div>
+            </div>
+            <div id="imagePreview" class="mt-2" style="display: none;">
+                <img id="previewImg" src="" alt="Image Preview" style="max-width: 200px; max-height: 150px; border-radius: 8px;">
+            </div>
+        </div>
+
         <button type="submit" id="submitBtn" class="btn btn-red submit-btn">Save Vehicle to Inventory</button>
     </form>
 </section>
@@ -209,6 +222,19 @@ function loadCarData(id) {
         });
 }
 
+// Image preview functionality
+document.getElementById('carImageInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            document.getElementById('previewImg').src = event.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
 // Handle form submission
 document.getElementById('carForm').addEventListener('submit', function(e) {
     e.preventDefault();
@@ -263,3 +289,8 @@ function getCodingDay(plate) {
     }
 }
 </script>
+
+<!-- Keep as-is (already has inline JS or can add later) -->
+<!-- Or add: -->
+<script src="assets/js/core.js"></script>
+<!-- (since it uses updateCoding, handleTypeChange) -->

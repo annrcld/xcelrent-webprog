@@ -26,7 +26,6 @@
     </div>
 </section>
 
-<?php
-// Any PHP logic needed *after* the HTML (though uncommon for this page)
-// could go here.
-?>
+<!-- At the bottom -->
+<script src="assets/js/core.js"></script>
+<script src="assets/js/manage_bookings.js"></script>

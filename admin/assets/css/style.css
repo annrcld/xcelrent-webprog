@@ -12,7 +12,6 @@ body {
     font-family: 'Inter', sans-serif;
     background: #f4f4f4;
     color: var(--black);
-
     height: 100vh;
     overflow: hidden;
 }
@@ -23,7 +22,6 @@ body {
     min-height: 100vh;
 }
 
-/* Sidebar */
 .sidebar {
     width: 260px;
     background: var(--black);
@@ -33,6 +31,7 @@ body {
     flex-direction: column;
     box-sizing: border-box;
 }
+
 .logo-area {
     padding: 30px;
     display: flex;
@@ -40,27 +39,28 @@ body {
     gap: 10px;
     border-bottom: 1px solid #333;
 }
+
 .logo-text {
     font-size: 22px;
     font-weight: 800;
     letter-spacing: -1px;
 }
+
 .logo-text span {
     color: var(--red);
 }
+
 .logo-icon {
     color: var(--red);
     font-size: 20px;
 }
 
-/* Sidebar navigation */
 .sidebar-nav {
     flex: 1;
     padding: 20px 0;
     box-sizing: border-box;
 }
 
-/* Make both anchors and buttons behave the same */
 .sidebar-nav a.nav-btn,
 .sidebar-nav button.nav-btn {
     display: flex;
@@ -76,11 +76,10 @@ body {
     font-size: 15px;
     cursor: pointer;
     transition: background 0.15s ease, color 0.15s ease;
-    text-decoration: none; /* remove underline for anchors */
+    text-decoration: none;
     outline: none;
 }
 
-/* Ensure icons inside nav items don't receive underlines or pointer events */
 .sidebar-nav a.nav-btn i,
 .sidebar-nav button.nav-btn i {
     pointer-events: none;
@@ -88,7 +87,6 @@ body {
     align-items: center;
 }
 
-/* Hover / active - full width background, no underline */
 .sidebar-nav a.nav-btn:hover,
 .sidebar-nav a.nav-btn.active,
 .sidebar-nav button.nav-btn:hover,
@@ -98,13 +96,11 @@ body {
     text-decoration: none;
 }
 
-/* Focus visible for accessibility */
 .sidebar-nav a.nav-btn:focus,
 .sidebar-nav button.nav-btn:focus {
     box-shadow: 0 0 0 3px rgba(230,57,70,0.12);
 }
 
-/* Content area */
 .main-content {
     flex: 1;
     padding: 40px;
@@ -112,65 +108,72 @@ body {
     box-sizing: border-box;
     min-width: 0;
 }
+
 .tab-content {
     display: none;
 }
+
 .tab-content.active {
     display: block;
 }
+
 .page-title {
     margin-bottom: 30px;
     font-size: 28px;
     font-weight: 800;
 }
 
-
-/* KPI Cards */
 .kpi-row {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 15px;
     margin-bottom: 30px;
 }
+
 .kpi-card {
     background: var(--white);
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.05);
 }
+
 .kpi-card h3 {
     font-size: 12px;
     color: var(--text-grey);
     text-transform: uppercase;
     margin: 0;
 }
+
 .kpi-card p {
     font-size: 24px;
     font-weight: bold;
     margin: 10px 0 0;
 }
+
 .red-border {
     border-top: 4px solid var(--red);
 }
 
-/* Forms */
 .entry-form {
     background: var(--white);
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
+
 .form-section {
     margin-bottom: 25px;
     border-bottom: 1px solid #eee;
     padding-bottom: 20px;
 }
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 20px;
     margin-top: 10px;
 }
+
 input, select, textarea {
     padding: 12px;
     border: 2px solid #ddd;
@@ -181,6 +184,7 @@ input, select, textarea {
     background: #fff;
     color: #222;
 }
+
 input:focus, select:focus, textarea:focus {
     border-color: var(--red);
     outline: none;
@@ -208,16 +212,17 @@ input:focus, select:focus, textarea:focus {
     cursor: pointer;
     box-sizing: border-box;
 }
+
 .btn-red { background: var(--red); color: white; }
 .btn-black { background: var(--black); color: white; }
 .submit-btn { width: 100%; margin-top: 20px; font-size: 16px; }
 
-/* Counter Control */
 .controls {
     display: flex;
     align-items: center;
     gap: 10px;
 }
+
 .controls button {
     background: var(--black);
     color: white;
@@ -227,39 +232,38 @@ input:focus, select:focus, textarea:focus {
     border-radius: 4px;
 }
 
-/* Tables and panels */
 .panel {
     background: var(--white);
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
+
 .data-table {
     width: 100%;
     border-collapse: collapse;
 }
+
 .data-table th,
 .data-table td {
     padding: 12px 10px;
     border-bottom: 1px solid #eee;
     text-align: left;
     font-size: 14px;
+    vertical-align: middle;
 }
+
 .data-table thead th {
     background: #fafafa;
     font-weight: 700;
     color: #444;
 }
 
-/* Responsive tweaks */
 @media (max-width: 980px) {
-    .sidebar {
-        width: 220px;
-    }
-    .kpi-row {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .sidebar { width: 220px; }
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
 }
+
 @media (max-width: 680px) {
     .app-container { flex-direction: column; height: auto; }
     .sidebar { width: 100%; display: flex; flex-direction: row; align-items: center; padding: 10px; gap: 10px; }
@@ -269,22 +273,6 @@ input:focus, select:focus, textarea:focus {
     .main-content { padding: 20px; }
 }
 
-
-
-/* Badges */
-.badge {
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8em;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: white;
-}
-.badge-green { background: #4CAF50; }
-.badge-orange { background: #FF9800; }
-.badge-gray { background: #9E9E9E; }
-
-/* Table image */
 .table-img {
     width: 50px;
     height: auto;
@@ -292,20 +280,84 @@ input:focus, select:focus, textarea:focus {
     object-fit: cover;
 }
 
-/* Action buttons */
-.actions .icon-btn {
+.badge {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: white;
+    display: inline-block;
+}
+
+.badge-green { background: #4CAF50; }
+.badge-orange { background: #FF9800; }
+.badge-gray { background: #9E9E9E; }
+
+.status-cell {
+    text-align: center;
+}
+
+.actions-cell {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.action-btn {
     background: none;
     border: none;
     cursor: pointer;
-    margin: 0 4px;
-    font-size: 1.1em;
-    color: #555;
+    padding: 6px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin: 0 2px;
 }
-.actions .icon-btn.edit { color: #2196F3; }
-.actions .icon-btn.delete { color: #f44336; }
 
-/* Center empty messages */
-.text-center {
-    text-align: center;
-    color: #666;
+.action-btn.edit { color: #2196F3; }
+.action-btn.delete { color: #f44336; }
+.action-btn:hover { background: #f0f0f0; }
+
+.action-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.filter-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.filter-row {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+}
+
+.filter-col {
+    flex: 1;
+    min-width: 0;
+}
+
+.filter-col select,
+.filter-col input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    background: white;
+}
+
+.filter-col select:focus,
+.filter-col input:focus {
+    outline: none;
+    border-color: #2196F3;
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
 }
