@@ -199,18 +199,6 @@ function toggleCarStatus(checkbox, type, carId) {
     console.log(`Toggle car ${carId} status to ${newStatus}`);
 }
 
-function editCar(carId) {
-    alert('Edit Car #' + carId + ' - Feature coming soon');
-}
-
-function deleteCar(carId) {
-    if (confirm('Are you sure you want to delete this car?')) {
-        // TODO: Call API to delete car
-        console.log('Delete car ' + carId);
-        loadCars();
-    }
-}
-
 // ============================================
 // MANAGE BOOKINGS
 // ============================================

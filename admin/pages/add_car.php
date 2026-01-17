@@ -1,7 +1,10 @@
 <section id="add-car" class="tab-content active">
-    <h1 class="page-title">Add New Car</h1>
+    <h1 class="page-title"><span id="formTitle">Add New Car</span></h1>
     
-    <form class="entry-form" id="carEntryForm">
+    <form class="entry-form" id="carForm" method="POST" enctype="multipart/form-data">
+        
+        <!-- Hidden field for edit mode -->
+        <input type="hidden" name="car_id" id="carId" value="">
         
         <div class="form-section">
             <h3>Vehicle Identity</h3>
@@ -58,11 +61,11 @@
             <div class="form-row">
                 <div class="file-group">
                     <label>Official Receipt (OR)</label>
-                    <input type="file" name="or_file" accept=".pdf,.jpg,.jpeg,.png" required>
+                    <input type="file" name="or_file" accept=".pdf,.jpg,.jpeg,.png">
                 </div>
                 <div class="file-group">
                     <label>Certificate of Registration (CR)</label>
-                    <input type="file" name="cr_file" accept=".pdf,.jpg,.jpeg,.png" required>
+                    <input type="file" name="cr_file" accept=".pdf,.jpg,.jpeg,.png">
                 </div>
                 <div class="file-group">
                     <label>NBI Clearance</label>
@@ -148,43 +151,115 @@
             </div>
         </div>
 
-        <button type="submit" class="btn btn-red submit-btn">Save Vehicle to Inventory</button>
+        <button type="submit" id="submitBtn" class="btn btn-red submit-btn">Save Vehicle to Inventory</button>
     </form>
 </section>
 
 <script>
-document.getElementById('carEntryForm').onsubmit = function(e) {
-    e.preventDefault(); // This stops the browser from opening the JSON page
+// Check if we're in edit mode
+const urlParams = new URLSearchParams(window.location.search);
+const editId = urlParams.get('edit_id');
 
+if (editId) {
+    document.getElementById('formTitle').textContent = 'Edit Vehicle';
+    document.getElementById('submitBtn').textContent = 'Update Vehicle';
+    loadCarData(editId);
+}
+
+function loadCarData(id) {
+    fetch(`api/get_car.php?id=${id}`)
+        .then(res => res.json())
+        .then(data => {
+            if (!data.success) {
+                alert('Failed to load car data.');
+                return;
+            }
+
+            const car = data.data;
+
+            // Set hidden ID
+            document.getElementById('carId').value = car.id;
+
+            // Fill form fields
+            document.querySelector('[name="brand"]').value = car.brand || '';
+            document.querySelector('[name="model"]').value = car.model || '';
+            document.querySelector('[name="category"]').value = car.category || '';
+            document.querySelector('[name="fuel_type"]').value = car.fuel_type || '';
+            document.querySelector('[name="driver_type"]').value = car.driver_type || '';
+            document.querySelector('[name="seating"]').value = car.seating || 4;
+            document.querySelector('[name="plate_number"]').value = car.plate_number || '';
+            document.querySelector('[name="location"]').value = car.location || '';
+
+            // Pricing
+            document.querySelector('[name="tier1_12hrs"]').value = car.tier1_12hrs || '';
+            document.querySelector('[name="tier1_24hrs"]').value = car.tier1_24hrs || '';
+            document.querySelector('[name="tier2_12hrs"]').value = car.tier2_12hrs || '';
+            document.querySelector('[name="tier2_24hrs"]').value = car.tier2_24hrs || '';
+            document.querySelector('[name="tier3_24hrs"]').value = car.tier3_24hrs || '';
+            document.querySelector('[name="tier4_daily"]').value = car.tier4_daily || '';
+
+            // Optional: Show image preview if available
+            if (car.car_image) {
+                // You can add an image preview here if needed
+            }
+        })
+        .catch(err => {
+            alert('Error loading car data.');
+            console.error(err);
+        });
+}
+
+// Handle form submission
+document.getElementById('carForm').addEventListener('submit', function(e) {
+    e.preventDefault();
     const formData = new FormData(this);
 
-    // Show a "Processing..." state on the button if you like
-    const submitBtn = this.querySelector('.submit-btn');
-    const originalText = submitBtn.innerText;
-    submitBtn.innerText = "Saving...";
-    submitBtn.disabled = true;
+    const url = editId ? 'api/update_car.php' : 'api/add_car.php';
 
-    fetch('api/add_car.php', {
+    fetch(url, {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(res => res.json())
     .then(data => {
         if (data.success) {
-            alert(data.msg); // Show the success prompt
-            // REDIRECT: Change 'index.php' to your actual dashboard URL if different
-            window.location.href = 'index.php?page=manage_cars'; 
+            alert(data.msg);
+            window.location.href = '?page=manage_cars'; // Redirect back to manage cars
         } else {
-            alert("Error: " + data.msg);
-            submitBtn.innerText = originalText;
-            submitBtn.disabled = false;
+            alert('Error: ' + data.msg);
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        alert("An error occurred while saving.");
-        submitBtn.innerText = originalText;
-        submitBtn.disabled = false;
+    .catch(err => {
+        alert('Network error. Please try again.');
+        console.error(err);
     });
-};
+});
+
+// Seating counter
+function adjustSeating(delta) {
+    const input = document.getElementById('seating');
+    let val = parseInt(input.value) + delta;
+    if (val < 1) val = 1;
+    if (val > 20) val = 20; // max seating
+    input.value = val;
+}
+
+// Plate coding logic (optional)
+function updateCoding() {
+    const plate = document.getElementById('plateInput').value.toUpperCase();
+    document.getElementById('codingDisplay').value = getCodingDay(plate);
+}
+
+function getCodingDay(plate) {
+    if (!plate.match(/^[A-Z]{3}-[0-9]{4}$/)) return '';
+    const lastDigit = plate.slice(-1);
+    switch(lastDigit) {
+        case '0': case '1': return 'Monday';
+        case '2': case '3': return 'Tuesday';
+        case '4': case '5': return 'Wednesday';
+        case '6': case '7': return 'Thursday';
+        case '8': case '9': return 'Friday';
+        default: return '';
+    }
+}
 </script>

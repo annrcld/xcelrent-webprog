@@ -271,3 +271,41 @@ input:focus, select:focus, textarea:focus {
 
 
 
+/* Badges */
+.badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: white;
+}
+.badge-green { background: #4CAF50; }
+.badge-orange { background: #FF9800; }
+.badge-gray { background: #9E9E9E; }
+
+/* Table image */
+.table-img {
+    width: 50px;
+    height: auto;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+/* Action buttons */
+.actions .icon-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin: 0 4px;
+    font-size: 1.1em;
+    color: #555;
+}
+.actions .icon-btn.edit { color: #2196F3; }
+.actions .icon-btn.delete { color: #f44336; }
+
+/* Center empty messages */
+.text-center {
+    text-align: center;
+    color: #666;
+}

@@ -2,37 +2,70 @@
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../includes/config.php';
 
-$category = $_GET['category'] ?? '';
-$status = $_GET['status'] ?? '';
-$location = $_GET['location'] ?? '';
+$category = trim($_GET['category'] ?? '');
+$status = trim($_GET['status'] ?? '');
+$location = trim($_GET['location'] ?? '');
 
-// Added car_image and pricing tiers to the SELECT
+$allowedCategories = ['Sedan', 'SUV', 'Van'];
+$allowedStatuses = ['live', 'hidden', 'maintenance'];
+
+if ($category && !in_array($category, $allowedCategories)) {
+    $category = '';
+}
+if ($status && !in_array($status, $allowedStatuses)) {
+    $status = '';
+}
+
 $sql = "SELECT c.*, o.company_name as owner,
         (SELECT COUNT(*) FROM documents d WHERE d.car_id = c.id AND d.verified = 1) as verified_docs
         FROM cars c
         LEFT JOIN operators o ON c.operator_id = o.id
         WHERE 1=1";
 
-if (!empty($category)) $sql .= " AND c.category = '" . $conn->real_escape_string($category) . "'";
-if (!empty($status)) $sql .= " AND c.status = '" . $conn->real_escape_string($status) . "'";
-if (!empty($location)) $sql .= " AND c.location = '" . $conn->real_escape_string($location) . "'";
+$types = "";
+$params = [];
+
+if ($category !== '') {
+    $sql .= " AND c.category = ?";
+    $types .= "s";
+    $params[] = $category;
+}
+if ($status !== '') {
+    $sql .= " AND c.status = ?";
+    $types .= "s";
+    $params[] = $status;
+}
+if ($location !== '') {
+    $sql .= " AND c.location = ?";
+    $types .= "s";
+    $params[] = $location;
+}
 
 $sql .= " ORDER BY c.created_at DESC";
 
-$result = $conn->query($sql);
+$stmt = $conn->prepare($sql);
+if ($types !== "") {
+    $stmt->bind_param($types, ...$params);
+}
+
+if (!$stmt->execute()) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Database query failed']);
+    exit;
+}
+
+$result = $stmt->get_result();
 $cars = [];
 
-if ($result) {
-    while ($row = $result->fetch_assoc()) {
-        // Fetch document status for this specific car
-        $docSql = "SELECT doc_type, verified FROM documents WHERE car_id = " . $row['id'];
-        $docRes = $conn->query($docSql);
-        $row['docs'] = $docRes->fetch_all(MYSQLI_ASSOC);
-        $cars[] = $row;
-    }
-    echo json_encode(['success' => true, 'data' => $cars]);
-} else {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => $conn->error]);
+while ($row = $result->fetch_assoc()) {
+    $docStmt = $conn->prepare("SELECT doc_type, verified FROM documents WHERE car_id = ?");
+    $docStmt->bind_param("i", $row['id']);
+    $docStmt->execute();
+    $docResult = $docStmt->get_result();
+    $row['docs'] = $docResult->fetch_all(MYSQLI_ASSOC);
+    $cars[] = $row;
 }
+
+echo json_encode(['success' => true, 'data' => $cars]);
 $conn->close();
+?>
