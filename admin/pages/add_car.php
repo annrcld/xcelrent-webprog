@@ -1,7 +1,7 @@
 <section id="add-car" class="tab-content active">
     <h1 class="page-title">Add New Car</h1>
     
-    <form class="entry-form" action="api/add_car.php" method="POST" enctype="multipart/form-data">
+    <form class="entry-form" id="carEntryForm">
         
         <div class="form-section">
             <h3>Vehicle Identity</h3>
@@ -40,11 +40,11 @@
                 </div>
                <input type="text" 
                     id="plateInput" 
-                    placeholder="AAA1111" 
+                    placeholder="AAA-1111" 
                     name="plate_number" 
                     onkeyup="updateCoding()" 
                     style="text-transform: uppercase;" 
-                    maxlength="7" 
+                    maxlength="8" 
                     pattern="[A-Z]{3}-[0-9]{4}" 
                     required>
                 <input type="text" id="codingDisplay" placeholder="Coding Day" name="coding_day" readonly class="bg-gray">
@@ -151,3 +151,40 @@
         <button type="submit" class="btn btn-red submit-btn">Save Vehicle to Inventory</button>
     </form>
 </section>
+
+<script>
+document.getElementById('carEntryForm').onsubmit = function(e) {
+    e.preventDefault(); // This stops the browser from opening the JSON page
+
+    const formData = new FormData(this);
+
+    // Show a "Processing..." state on the button if you like
+    const submitBtn = this.querySelector('.submit-btn');
+    const originalText = submitBtn.innerText;
+    submitBtn.innerText = "Saving...";
+    submitBtn.disabled = true;
+
+    fetch('api/add_car.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.msg); // Show the success prompt
+            // REDIRECT: Change 'index.php' to your actual dashboard URL if different
+            window.location.href = 'index.php?page=manage_cars'; 
+        } else {
+            alert("Error: " + data.msg);
+            submitBtn.innerText = originalText;
+            submitBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("An error occurred while saving.");
+        submitBtn.innerText = originalText;
+        submitBtn.disabled = false;
+    });
+};
+</script>
