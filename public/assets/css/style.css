@@ -226,7 +226,7 @@ footer {
 
 /* --- MODALS --- */
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; backdrop-filter: blur(3px); }
-.center-flex { display: none; align-items: center; justify-content: center; }
+.center-flex { display: flex; align-items: center; justify-content: center; }
 
 .minimal-modal {
     background: white; padding: 2.5rem; width: 90%; max-width: 400px;

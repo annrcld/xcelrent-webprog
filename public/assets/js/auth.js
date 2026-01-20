@@ -1,0 +1,155 @@
+// public/assets/js/auth.js
+
+/* --- AUTHENTICATION FUNCTIONS --- */
+
+function handleLogin(e) {
+    e.preventDefault();
+    closeModal('loginModal');
+    document.getElementById('authButtons').style.display = 'none';
+    document.getElementById('userMenu').style.display = 'flex';
+}
+
+function logout() {
+    document.getElementById('authButtons').style.display = 'flex';
+    document.getElementById('userMenu').style.display = 'none';
+}
+
+function toggleDropdown() {
+    const menu = document.getElementById('dropdownMenu');
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+function handleSignUp(event) {
+    event.preventDefault();
+
+    const phone = document.getElementById('regPhone').value;
+    const email = document.getElementById('regEmail').value;
+    const pass = document.getElementById('regPass').value;
+
+    // VALIDATION
+    if (phone.length !== 11) {
+        alert("Contact number must be exactly 11 digits.");
+        return;
+    }
+    if (pass.length < 8) {
+        alert("Password must be at least 8 characters.");
+        return;
+    }
+
+    // TRANSITION TO OTP
+    document.getElementById('displayEmail').innerText = email;
+    closeModal('signupModal');
+    openModal('otpModal');
+}
+
+function verifyAndFinish() {
+    const otp = document.getElementById('otpInput').value;
+    if (otp.length === 6) {
+        alert("Success! Your account is verified.");
+        closeModal('otpModal');
+        // Automatically Log them in
+        isLoggedIn = true;
+        updateNavUI(); // Updates menu to show profile
+    } else {
+        alert("Please enter a valid 6-digit code.");
+    }
+}
+
+// Operator modal functions
+let currentOpStep = 1;
+
+function moveStep(direction) {
+    // --- VALIDATION RULES ---
+
+    // 1. Validate Privacy Checkbox (Step 2 to 3)
+    if (currentOpStep === 2 && direction === 'next') {
+        if (!document.getElementById('privacyAgree').checked) {
+            alert("You must agree to the Privacy Policy to continue.");
+            return;
+        }
+    }
+
+    // 2. Validate Vehicle Details (Step 3 to 4)
+    if (currentOpStep === 3 && direction === 'next') {
+        const vName = document.getElementById('vName').value.trim();
+        const vPlate = document.getElementById('vPlate').value.trim();
+        const vCategory = document.getElementById('vCategory').value;
+        const vFuel = document.getElementById('vFuel').value;
+        const vDriverType = document.getElementById('vDriverType').value;
+
+        if (!vName || !vPlate || !vCategory || !vFuel || !vDriverType) {
+            alert("Please fill in all vehicle information fields.");
+            return;
+        }
+    }
+
+    // --- MOVEMENT LOGIC ---
+    if (direction === 'next') {
+        currentOpStep++;
+    } else if (direction === 'back') {
+        currentOpStep--;
+    }
+
+    // Update Step Visibility
+    document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+    document.getElementById(`opStep${currentOpStep}`).classList.add('active');
+
+    // Footer & Button Updates
+    const footer = document.getElementById('opFooter');
+    footer.style.display = (currentOpStep === 1) ? 'none' : 'flex';
+
+    const btnNext = document.getElementById('btnNext');
+    if (currentOpStep === 4) {
+        btnNext.innerText = "Submit Application";
+        btnNext.onclick = handleFinalSubmit; // Reassign to final check
+    } else {
+        btnNext.innerText = "Next";
+        btnNext.onclick = () => moveStep('next');
+    }
+}
+
+function handleFinalSubmit() {
+    // 3. Validate Step 4: All Files Must be Present
+    const fileIds = ['up-photos', 'up-or', 'up-deed', 'up-nbi', 'up-license'];
+    let allUploaded = true;
+
+    fileIds.forEach(id => {
+        const input = document.getElementById(id);
+        if (!input.files || input.files.length === 0) {
+            allUploaded = false;
+            input.style.border = "1px solid red"; // Visual hint
+        } else {
+            input.style.border = "none";
+        }
+    });
+
+    if (!allUploaded) {
+        alert("Please upload all required documents before submitting.");
+        return;
+    }
+
+    // SUCCESS STATE
+    const modalContent = document.querySelector('#operatorModal .modal-content');
+    modalContent.innerHTML = `
+        <div style="text-align:center; padding: 3rem 1rem;">
+            <i class="fa-solid fa-circle-check" style="font-size: 4rem; color: #22c55e; margin-bottom: 1.5rem;"></i>
+            <h2>Application Received!</h2>
+            <p style="color:var(--text-muted); margin-top:1rem;">Our team will review your requirements and contact you within 24-48 hours.</p>
+            <button class="btn btn-primary" style="margin-top:2rem;" onclick="location.reload()">Back to Home</button>
+        </div>
+    `;
+}
+
+// --- DYNAMIC SEATER LOGIC ---
+function updateSeaters() {
+    const category = document.getElementById('vCategory').value;
+    const seatersInput = document.getElementById('vSeaters');
+
+    const seatingMap = {
+        'Sedan': '4-5 seaters',
+        'SUV': '7-8 seaters',
+        'Van': '10-15 seaters'
+    };
+
+    seatersInput.value = seatingMap[category] || '';
+}
