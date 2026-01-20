@@ -40,23 +40,6 @@ function handleLogin(e) {
             // Login successful
             closeModal('loginModal');
 
-            // Safely update UI elements
-            const authButtons = document.getElementById('authButtons');
-            const userMenu = document.getElementById('userMenu');
-            const userAvatar = document.querySelector('.user-avatar');
-
-            if (authButtons) {
-                authButtons.style.display = 'none';
-            }
-            if (userMenu) {
-                userMenu.style.display = 'flex';
-            }
-            if (userAvatar && data.user) {
-                const firstName = data.user.first_name.charAt(0);
-                const lastName = data.user.last_name.charAt(0);
-                userAvatar.textContent = firstName + lastName;
-            }
-
             // Update operator modal if it's open
             const operatorModal = document.getElementById('operatorModal');
             if (operatorModal && operatorModal.style.display !== 'none') {
@@ -70,6 +53,11 @@ function handleLogin(e) {
                     operatorRequirements.style.display = 'block';
                 }
             }
+
+            // Reload page to ensure UI is properly updated with server-side state
+            setTimeout(() => {
+                location.reload();
+            }, 500);
         } else {
             alert(data.message || "Login failed. Please check your credentials.");
         }
@@ -82,29 +70,43 @@ function handleLogin(e) {
 }
 
 function logout() {
-    const authButtons = document.getElementById('authButtons');
-    const userMenu = document.getElementById('userMenu');
-
-    if (authButtons) {
-        authButtons.style.display = 'flex';
-    }
-    if (userMenu) {
-        userMenu.style.display = 'none';
-    }
-
-    // Reset operator modal to show login message if it's open
-    const operatorModal = document.getElementById('operatorModal');
-    if (operatorModal && operatorModal.style.display !== 'none') {
-        const loginCheckMessage = document.getElementById('loginCheckMessage');
-        const operatorRequirements = document.getElementById('operatorRequirements');
-
-        if (loginCheckMessage) {
-            loginCheckMessage.style.display = 'block';
+    // Call the logout API
+    fetch('/project_xcelrent/public/api/logout.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
         }
-        if (operatorRequirements) {
-            operatorRequirements.style.display = 'none';
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Reset operator modal to show login message if it's open
+            const operatorModal = document.getElementById('operatorModal');
+            if (operatorModal && operatorModal.style.display !== 'none') {
+                const loginCheckMessage = document.getElementById('loginCheckMessage');
+                const operatorRequirements = document.getElementById('operatorRequirements');
+
+                if (loginCheckMessage) {
+                    loginCheckMessage.style.display = 'block';
+                }
+                if (operatorRequirements) {
+                    operatorRequirements.style.display = 'none';
+                }
+            }
+
+            // Reload page to ensure UI is properly updated with server-side state
+            setTimeout(() => {
+                location.reload();
+            }, 500);
         }
-    }
+    })
+    .catch(error => {
+        console.error('Logout error:', error);
+        // Reload page to ensure UI is properly updated with server-side state
+        setTimeout(() => {
+            location.reload();
+        }, 500);
+    });
 }
 
 function toggleDropdown() {
@@ -205,9 +207,10 @@ function moveStep(direction) {
         const vPlate = document.getElementById('vPlate').value.trim();
         const vCategory = document.getElementById('vCategory').value;
         const vFuel = document.getElementById('vFuel').value;
+        const vTransmission = document.getElementById('vTransmission').value;
         const vDriverType = document.getElementById('vDriverType').value;
 
-        if (!vName || !vPlate || !vCategory || !vFuel || !vDriverType) {
+        if (!vName || !vPlate || !vCategory || !vFuel || !vTransmission || !vDriverType) {
             alert("Please fill in all vehicle information fields.");
             return;
         }
@@ -258,16 +261,51 @@ function handleFinalSubmit() {
         return;
     }
 
-    // SUCCESS STATE
-    const modalContent = document.querySelector('#operatorModal .modal-content');
-    modalContent.innerHTML = `
-        <div style="text-align:center; padding: 3rem 1rem;">
-            <i class="fa-solid fa-circle-check" style="font-size: 4rem; color: #22c55e; margin-bottom: 1.5rem;"></i>
-            <h2>Application Received!</h2>
-            <p style="color:var(--text-muted); margin-top:1rem;">Our team will review your requirements and contact you within 24-48 hours.</p>
-            <button class="btn btn-primary" style="margin-top:2rem;" onclick="location.reload()">Back to Home</button>
-        </div>
-    `;
+    // Collect vehicle details
+    const vehicleDetails = {
+        vehicleName: document.getElementById('vName').value,
+        plateNumber: document.getElementById('vPlate').value,
+        category: document.getElementById('vCategory').value,
+        seater: parseInt(document.getElementById('vSeaters').value.match(/\d+/)?.[0]) || 4, // Extract number from seater text
+        fuel: document.getElementById('vFuel').value,
+        transmission: document.getElementById('vTransmission').value,
+        driverType: document.getElementById('vDriverType').value
+    };
+
+    // Send data to server
+    fetch('/project_xcelrent/public/api/operator_application.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(vehicleDetails)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            // SUCCESS STATE
+            const modalContent = document.querySelector('#operatorModal .modal-content');
+            modalContent.innerHTML = `
+                <div style="text-align:center; padding: 3rem 1rem;">
+                    <i class="fa-solid fa-circle-check" style="font-size: 4rem; color: #22c55e; margin-bottom: 1.5rem;"></i>
+                    <h2>Application Received!</h2>
+                    <p style="color:var(--text-muted); margin-top:1rem;">Your vehicle has been submitted for review. Our team will contact you within 24-48 hours.</p>
+                    <button class="btn btn-primary" style="margin-top:2rem;" onclick="location.reload()">Back to Home</button>
+                </div>
+            `;
+        } else {
+            alert(data.message || "Failed to submit application. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error('Submission error:', error);
+        alert("An error occurred while submitting your application. Please try again. Error: " + error.message);
+    });
 }
 
 // --- DYNAMIC SEATER LOGIC ---

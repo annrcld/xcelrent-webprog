@@ -1,6 +1,11 @@
 <?php
 // public/includes/config.php
 
+// Start session if not already started
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Database Configuration
 define('DB_HOST', 'localhost:3307');
 define('DB_USER', 'root');  // Adjust as needed for your setup

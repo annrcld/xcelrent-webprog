@@ -27,13 +27,21 @@ require_once __DIR__ . '/config.php';
             <a href="?page=home#testimonials" onclick="if(window.location.search.indexOf('page=home') !== -1) { scrollToSection('testimonials'); return false; }">Reviews</a>
             <a href="?page=contact"<?php echo isset($_GET['page']) && $_GET['page'] === 'contact' ? ' class="active"' : ''; ?>>Contact</a>
              <div class="divider-vertical"></div>
-            <div class="nav-auth-group">
-                <button class="btn btn-text" onclick="openModal('operatorModal')">Be an Operator</button>
+            <button class="btn btn-text" onclick="openModal('operatorModal')">Be an Operator</button>
+            <div class="nav-auth-group" style="<?php echo (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) ? 'display: none;' : 'display: flex;'; ?>">
                 <button class="btn btn-primary" onclick="openModal('loginModal')">Sign In</button>
             </div>
 
-            <div class="user-menu" id="userMenu" style="display: none;">
-                <div class="user-avatar" onclick="toggleDropdown()">GB</div>
+            <div class="user-menu" id="userMenu" style="<?php echo (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) ? 'display: flex;' : 'display: none;'; ?>">
+                <div class="user-avatar" onclick="toggleDropdown()">
+                    <?php
+                    if (isset($_SESSION['user_first_name']) && isset($_SESSION['user_last_name'])) {
+                        echo htmlspecialchars(substr($_SESSION['user_first_name'], 0, 1) . substr($_SESSION['user_last_name'], 0, 1));
+                    } else {
+                        echo 'GB';
+                    }
+                    ?>
+                </div>
                 <div class="dropdown-menu" id="dropdownMenu">
                     <a onclick="logout()">Log out</a>
                 </div>
@@ -43,7 +51,7 @@ require_once __DIR__ . '/config.php';
     </div>
 </nav>
 
-<div class="guest-notice" id="guestNotice">
+<div class="guest-notice" id="guestNotice" style="<?php echo (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) ? 'display: none;' : 'display: block;'; ?>">
     <div class="notice-content">
         <span>Browsing as a guest? <a onclick="openModal('signupModal')">Create an account</a> for exclusive deals.</span>
     </div>
@@ -239,11 +247,19 @@ require_once __DIR__ . '/config.php';
 
         <div class="form-row-compact">
             <div class="form-group-inner">
+                <label>Transmission</label>
+                <select class="minimal-input" id="vTransmission">
+                    <option value="" disabled selected>Select...</option>
+                    <option value="Automatic">Automatic</option>
+                    <option value="Manual">Manual</option>
+                </select>
+            </div>
+            <div class="form-group-inner">
                 <label>Driver Type</label>
                 <select class="minimal-input" id="vDriverType">
-                        <option value="Self-Drive">Self-Drive</option>
-                        <option value="With Driver">With Driver</option>
-                    </select>
+                    <option value="Self-Drive">Self-Drive</option>
+                    <option value="With Driver">With Driver</option>
+                </select>
             </div>
         </div>
     </div>

@@ -65,6 +65,13 @@ try {
             // Password is correct
             unset($user['password']); // Remove password from response
 
+            // Set session variables
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_email'] = $user['email'];
+            $_SESSION['user_first_name'] = $user['first_name'];
+            $_SESSION['user_last_name'] = $user['last_name'];
+            $_SESSION['logged_in'] = true;
+
             echo json_encode([
                 'success' => true,
                 'message' => 'Login successful',
@@ -91,6 +98,13 @@ try {
         $user = $result->fetch_assoc();
 
         if ($user) {
+            // Set session variables
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_email'] = $user['email'];
+            $_SESSION['user_first_name'] = $user['first_name'];
+            $_SESSION['user_last_name'] = $user['last_name'];
+            $_SESSION['logged_in'] = true;
+
             echo json_encode([
                 'success' => true,
                 'message' => 'Login successful (Note: Password verification not enabled)',
