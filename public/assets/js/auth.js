@@ -4,9 +4,50 @@
 
 function handleLogin(e) {
     e.preventDefault();
-    closeModal('loginModal');
-    document.getElementById('authButtons').style.display = 'none';
-    document.getElementById('userMenu').style.display = 'flex';
+
+    const email = document.querySelector('#loginModal input[type="email"]').value;
+    const password = document.querySelector('#loginModal input[type="password"]').value;
+
+    // Basic validation
+    if (!email || !password) {
+        alert("Please enter both email and password.");
+        return;
+    }
+
+    // Prepare data for API call
+    const loginData = {
+        email: email,
+        password: password
+    };
+
+    // Call the login API
+    fetch('/project_xcelrent/public/api/login.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loginData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Login successful
+            closeModal('loginModal');
+            document.getElementById('authButtons').style.display = 'none';
+            document.getElementById('userMenu').style.display = 'flex';
+
+            // Update user avatar with initials
+            const firstName = data.user.first_name.charAt(0);
+            const lastName = data.user.last_name.charAt(0);
+            document.querySelector('.user-avatar').textContent = firstName + lastName;
+        } else {
+            alert(data.message || "Login failed. Please check your credentials.");
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("An error occurred during login. Please try again.");
+    });
 }
 
 function logout() {
@@ -22,11 +63,17 @@ function toggleDropdown() {
 function handleSignUp(event) {
     event.preventDefault();
 
+    const firstName = document.getElementById('regFirst').value;
+    const lastName = document.getElementById('regLast').value;
     const phone = document.getElementById('regPhone').value;
     const email = document.getElementById('regEmail').value;
     const pass = document.getElementById('regPass').value;
 
     // VALIDATION
+    if (!firstName || !lastName || !email || !phone || !pass) {
+        alert("All fields are required.");
+        return;
+    }
     if (phone.length !== 11) {
         alert("Contact number must be exactly 11 digits.");
         return;
@@ -36,10 +83,38 @@ function handleSignUp(event) {
         return;
     }
 
-    // TRANSITION TO OTP
-    document.getElementById('displayEmail').innerText = email;
-    closeModal('signupModal');
-    openModal('otpModal');
+    // Prepare data for API call
+    const userData = {
+        firstName: firstName,
+        lastName: lastName,
+        email: email,
+        phone: phone,
+        password: pass
+    };
+
+    // Call the signup API
+    fetch('/project_xcelrent/public/api/signup.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message and transition to OTP
+            document.getElementById('displayEmail').innerText = email;
+            closeModal('signupModal');
+            openModal('otpModal');
+        } else {
+            alert(data.message || "Registration failed. Please try again.");
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("An error occurred during registration. Please try again.");
+    });
 }
 
 function verifyAndFinish() {
