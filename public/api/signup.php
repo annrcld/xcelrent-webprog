@@ -77,19 +77,25 @@ $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 $conn->begin_transaction();
 
 try {
-    // Insert new user (without password since it's not in the current table structure)
-    $stmt = $conn->prepare("INSERT INTO users (first_name, last_name, email, phone) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $firstName, $lastName, $email, $phone);
+    // Check if password column exists in users table
+    $columnsResult = $conn->query("SHOW COLUMNS FROM users LIKE 'password'");
+    $passwordColumnExists = $columnsResult->num_rows > 0;
+
+    if ($passwordColumnExists) {
+        // Insert new user with password
+        $stmt = $conn->prepare("INSERT INTO users (first_name, last_name, email, phone, password) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssss", $firstName, $lastName, $email, $phone, $hashedPassword);
+    } else {
+        // Insert new user without password (fallback for when column doesn't exist)
+        $stmt = $conn->prepare("INSERT INTO users (first_name, last_name, email, phone) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $firstName, $lastName, $email, $phone);
+    }
 
     if (!$stmt->execute()) {
         throw new Exception("Failed to insert user");
     }
 
     $userId = $conn->insert_id;
-
-    // Note: In a production environment, you would want to store the password
-    // For now, we're not storing it due to table structure limitations
-    // TODO: Add password field to users table or create a separate auth table
 
     // Commit transaction
     $conn->commit();

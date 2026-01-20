@@ -28,44 +28,82 @@ function handleLogin(e) {
         },
         body: JSON.stringify(loginData)
     })
-    .then(response => response.json())
+    .then(response => {
+        // Check if response is OK before parsing JSON
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             // Login successful
             closeModal('loginModal');
-            document.getElementById('authButtons').style.display = 'none';
-            document.getElementById('userMenu').style.display = 'flex';
 
-            // Update user avatar with initials
-            const firstName = data.user.first_name.charAt(0);
-            const lastName = data.user.last_name.charAt(0);
-            document.querySelector('.user-avatar').textContent = firstName + lastName;
+            // Safely update UI elements
+            const authButtons = document.getElementById('authButtons');
+            const userMenu = document.getElementById('userMenu');
+            const userAvatar = document.querySelector('.user-avatar');
+
+            if (authButtons) {
+                authButtons.style.display = 'none';
+            }
+            if (userMenu) {
+                userMenu.style.display = 'flex';
+            }
+            if (userAvatar && data.user) {
+                const firstName = data.user.first_name.charAt(0);
+                const lastName = data.user.last_name.charAt(0);
+                userAvatar.textContent = firstName + lastName;
+            }
 
             // Update operator modal if it's open
             const operatorModal = document.getElementById('operatorModal');
             if (operatorModal && operatorModal.style.display !== 'none') {
-                document.getElementById('loginCheckMessage').style.display = 'none';
-                document.getElementById('operatorRequirements').style.display = 'block';
+                const loginCheckMessage = document.getElementById('loginCheckMessage');
+                const operatorRequirements = document.getElementById('operatorRequirements');
+
+                if (loginCheckMessage) {
+                    loginCheckMessage.style.display = 'none';
+                }
+                if (operatorRequirements) {
+                    operatorRequirements.style.display = 'block';
+                }
             }
         } else {
             alert(data.message || "Login failed. Please check your credentials.");
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert("An error occurred during login. Please try again.");
+        console.error('Login error:', error);
+        // Try to get more specific error information
+        alert("An error occurred during login. Please try again. Error: " + error.message);
     });
 }
 
 function logout() {
-    document.getElementById('authButtons').style.display = 'flex';
-    document.getElementById('userMenu').style.display = 'none';
+    const authButtons = document.getElementById('authButtons');
+    const userMenu = document.getElementById('userMenu');
+
+    if (authButtons) {
+        authButtons.style.display = 'flex';
+    }
+    if (userMenu) {
+        userMenu.style.display = 'none';
+    }
 
     // Reset operator modal to show login message if it's open
     const operatorModal = document.getElementById('operatorModal');
     if (operatorModal && operatorModal.style.display !== 'none') {
-        document.getElementById('loginCheckMessage').style.display = 'block';
-        document.getElementById('operatorRequirements').style.display = 'none';
+        const loginCheckMessage = document.getElementById('loginCheckMessage');
+        const operatorRequirements = document.getElementById('operatorRequirements');
+
+        if (loginCheckMessage) {
+            loginCheckMessage.style.display = 'block';
+        }
+        if (operatorRequirements) {
+            operatorRequirements.style.display = 'none';
+        }
     }
 }
 
@@ -118,7 +156,10 @@ function handleSignUp(event) {
     .then(data => {
         if (data.success) {
             // Show success message and transition to OTP
-            document.getElementById('displayEmail').innerText = email;
+            const displayEmailElement = document.getElementById('displayEmail');
+            if (displayEmailElement) {
+                displayEmailElement.innerText = email;
+            }
             closeModal('signupModal');
             openModal('otpModal');
         } else {
