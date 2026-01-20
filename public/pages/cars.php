@@ -35,10 +35,10 @@ if (isset($conn)) {
         <div class="nav-links">
             <a href="home.php">Home</a>
             <a href="cars.php" class="active">Book</a>
-            <a href="home.php?page=about">About</a>
-            <a href="home.php?page=contact">Contact</a>
+            <a href="about.php">About</a>
+            <a href="contact.php">Contact</a>
              <div class="divider-vertical"></div>
-            <div id="authButtons" class="nav-auth-group">
+            <div class="nav-auth-group">
                 <button class="btn btn-text" onclick="openModal('operatorModal')">Be an Operator</button>
                 <button class="btn btn-primary" onclick="openModal('loginModal')">Sign In</button>
             </div>

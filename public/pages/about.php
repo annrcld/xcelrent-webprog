@@ -9,11 +9,11 @@ include __DIR__ . '/../includes/header.php';
         <div class="logo" onclick="window.location.href='home.php'">Xcelrent<span class="dot">.</span></div>
         <div class="nav-links">
             <a href="home.php">Home</a>
-            <a href="cars.php">Book</a>
             <a href="about.php" class="active">About</a>
-            <a href="home.php?page=contact">Contact</a>
+            <a href="home.php#about" onclick="scrollToSection('testimonials')">Reviews</a>
+            <a href="contact.php">Contact</a>
              <div class="divider-vertical"></div>
-            <div id="authButtons" class="nav-auth-group">
+            <div class="nav-auth-group">
                 <button class="btn btn-text" onclick="openModal('operatorModal')">Be an Operator</button>
                 <button class="btn btn-primary" onclick="openModal('loginModal')">Sign In</button>
             </div>

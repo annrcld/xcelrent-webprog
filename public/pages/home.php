@@ -30,7 +30,7 @@ if (isset($conn)) {
             <div class="logo" onclick="window.location.reload()">Xcelrent<span class="dot">.</span></div>
 
             <div class="nav-links">
-                <a href="cars.php">Book</a>
+                <a href="home.php">Home</a>
                 <a href="?page=about">About</a>
                 <a onclick="scrollToSection('testimonials')">Reviews</a>
                 <a href="?page=contact">Contact</a>
