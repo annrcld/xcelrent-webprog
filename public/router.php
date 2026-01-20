@@ -16,6 +16,7 @@ $available_pages = [
 
 // Get requested page
 $page = $_GET['page'] ?? 'home';
+$section = $_GET['section'] ?? '';
 
 // Validate page
 if (!array_key_exists($page, $available_pages) || !file_exists($available_pages[$page])) {

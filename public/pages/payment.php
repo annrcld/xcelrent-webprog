@@ -1,7 +1,6 @@
 <?php
 // public/pages/payment.php
 $page_title = "Payment";
-include '../includes/header.php';
 ?>
 
 <style>

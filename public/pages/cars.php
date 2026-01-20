@@ -1,7 +1,6 @@
 <?php
 // public/pages/cars.php
 $page_title = "Available Cars";
-include __DIR__ . '/../includes/header.php'; // Uses absolute path
 
 // Get date parameters from URL
 $pickup_date = $_GET['pickup'] ?? '';
@@ -59,23 +58,6 @@ if (isset($conn)) {
 }
 ?>
 
-<nav>
-    <div class="nav-container">
-        <div class="logo" onclick="window.location.href='?page=home'">Xcelrent<span class="dot">.</span></div>
-        <div class="nav-links">
-            <a href="?page=home">Home</a>
-            <a href="?page=cars" class="active">Fleet</a>
-            <a href="?page=about">About</a>
-            <a href="?page=contact">Contact</a>
-             <div class="divider-vertical"></div>
-            <div class="nav-auth-group">
-                <button class="btn btn-text" onclick="openModal('operatorModal')">Be an Operator</button>
-                <button class="btn btn-primary" onclick="openModal('loginModal')">Sign In</button>
-            </div>
-        </div>
-        <div class="mobile-menu-btn"><i class="fa-solid fa-bars"></i></div>
-    </div>
-</nav>
 
 <div class="page-container" style="padding: 6rem 2rem; min-height: 60vh;">
     <!-- Search Box for Date Selection -->

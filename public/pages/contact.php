@@ -1,26 +1,8 @@
 <?php
 // public/pages/contact.php
 $page_title = "Contact Us";
-include __DIR__ . '/../includes/header.php';
 ?>
 
-<nav>
-    <div class="nav-container">
-        <div class="logo" onclick="window.location.href='home.php'">Xcelrent<span class="dot">.</span></div>
-        <div class="nav-links">
-            <a href="home.php">Home</a>
-            <a href="about.php">About</a>
-            <a href="home.php#about" onclick="scrollToSection('testimonials')">Reviews</a>
-            <a href="contact.php" class="active">Contact</a>
-             <div class="divider-vertical"></div>
-            <div class="nav-auth-group">
-                <button class="btn btn-text" onclick="openModal('operatorModal')">Be an Operator</button>
-                <button class="btn btn-primary" onclick="openModal('loginModal')">Sign In</button>
-            </div>
-        </div>
-        <div class="mobile-menu-btn"><i class="fa-solid fa-bars"></i></div>
-    </div>
-</nav>
 
 <style>
     .contact-container {

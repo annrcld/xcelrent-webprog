@@ -1,7 +1,6 @@
 <?php
 // public/pages/booking.php
 $page_title = "Book a Car";
-include '../includes/header.php';
 
 // Get car ID from URL parameter
 $car_id = $_GET['car_id'] ?? null;

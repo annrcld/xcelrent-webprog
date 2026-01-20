@@ -1,7 +1,6 @@
 <?php
 // public/pages/confirmation.php
 $page_title = "Booking Confirmed";
-include '../includes/header.php';
 ?>
 
 <style>
