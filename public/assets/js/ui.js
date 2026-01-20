@@ -17,6 +17,24 @@ function scrollToSection(sectionId) {
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
+
+    // Special handling for operator modal - check login status
+    if (modalId === 'operatorModal') {
+        // Check if user is logged in by seeing if user menu is displayed
+        const userMenu = document.getElementById('userMenu');
+        const isLoggedIn = userMenu && (userMenu.style.display === 'flex' || userMenu.style.display === 'block');
+
+        if (!isLoggedIn) {
+            // User is not logged in, show login message
+            document.getElementById('loginCheckMessage').style.display = 'block';
+            document.getElementById('operatorRequirements').style.display = 'none';
+        } else {
+            // User is logged in, show operator requirements
+            document.getElementById('loginCheckMessage').style.display = 'none';
+            document.getElementById('operatorRequirements').style.display = 'block';
+        }
+    }
+
     // Use Flex for modals to trigger the centering CSS
     modal.style.display = (modalId === 'operatorModal' || modalId === 'dateModal' || modalId === 'signupModal' || modalId === 'loginModal' || modalId === 'otpModal') ? 'flex' : 'block';
 }

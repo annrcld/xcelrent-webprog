@@ -40,6 +40,13 @@ function handleLogin(e) {
             const firstName = data.user.first_name.charAt(0);
             const lastName = data.user.last_name.charAt(0);
             document.querySelector('.user-avatar').textContent = firstName + lastName;
+
+            // Update operator modal if it's open
+            const operatorModal = document.getElementById('operatorModal');
+            if (operatorModal && operatorModal.style.display !== 'none') {
+                document.getElementById('loginCheckMessage').style.display = 'none';
+                document.getElementById('operatorRequirements').style.display = 'block';
+            }
         } else {
             alert(data.message || "Login failed. Please check your credentials.");
         }
@@ -53,6 +60,13 @@ function handleLogin(e) {
 function logout() {
     document.getElementById('authButtons').style.display = 'flex';
     document.getElementById('userMenu').style.display = 'none';
+
+    // Reset operator modal to show login message if it's open
+    const operatorModal = document.getElementById('operatorModal');
+    if (operatorModal && operatorModal.style.display !== 'none') {
+        document.getElementById('loginCheckMessage').style.display = 'block';
+        document.getElementById('operatorRequirements').style.display = 'none';
+    }
 }
 
 function toggleDropdown() {

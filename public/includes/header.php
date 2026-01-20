@@ -147,29 +147,41 @@ require_once __DIR__ . '/config.php';
             <h2>Become an Operator</h2>
             <p class="promo-text">Earn <span class="text-highlight">₱20,000 - ₱60,000</span> monthly.</p>
 
-            <div class="requirements-container">
-            <p class="req-title">What you'll need:</p>
-                    <div class="req-grid">
-                        <div class="req-item">
-                            <i class="fa-solid fa-id-card"></i>
-                            <span>Prof. License</span>
-                        </div>
-                        <div class="req-item">
-                            <i class="fa-solid fa-file-invoice"></i>
-                            <span>Vehicle OR/CR</span>
-                        </div>
-                        <div class="req-item">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            <span>NBI Clearance</span>
-                        </div>
-                        <div class="req-item">
-                            <i class="fa-solid fa-file-contract"></i>
-                            <span>Deed of Sale</span>
+            <!-- Check if user is logged in -->
+            <div id="loginCheckMessage" style="display: block;">
+                <div style="text-align: center; padding: 2rem;">
+                    <i class="fa-solid fa-lock" style="font-size: 3rem; color: var(--accent-red); margin-bottom: 1rem;"></i>
+                    <h3>Please login first</h3>
+                    <p style="color: var(--text-muted); margin: 1rem 0;">You need to have an account to become an operator.</p>
+                    <button class="btn btn-primary" onclick="closeModal('operatorModal'); openModal('loginModal');">Login to Continue</button>
+                    <p style="margin-top: 1rem;">Don't have an account? <a onclick="closeModal('operatorModal'); openModal('signupModal');" style="color: var(--accent-red); cursor: pointer;">Sign up</a></p>
+                </div>
+            </div>
+
+            <div id="operatorRequirements" style="display: none;">
+                <div class="requirements-container">
+                <p class="req-title">What you'll need:</p>
+                        <div class="req-grid">
+                            <div class="req-item">
+                                <i class="fa-solid fa-id-card"></i>
+                                <span>Prof. License</span>
+                            </div>
+                            <div class="req-item">
+                                <i class="fa-solid fa-file-invoice"></i>
+                                <span>Vehicle OR/CR</span>
+                            </div>
+                            <div class="req-item">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                <span>NBI Clearance</span>
+                            </div>
+                            <div class="req-item">
+                                <i class="fa-solid fa-file-contract"></i>
+                                <span>Deed of Sale</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-        <button class="btn btn-primary full-width" onclick="moveStep('next')">Get Started</button>
+                <button class="btn btn-primary full-width" onclick="moveStep('next')">Get Started</button>
+            </div>
     </div>
 
     <div class="step-content" id="opStep2">
