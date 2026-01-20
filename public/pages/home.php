@@ -3,20 +3,37 @@
 $page_title = "Home";
 include __DIR__ . '/../includes/header.php'; // Uses absolute path to avoid include errors
 
-// Fetch cars from database
+// Initialize variables
 $cars = [];
-if (isset($conn)) {
-    // Fetch cars with their primary photo
-    $sql = "SELECT c.*, 
-                   CONCAT(c.brand, ' ', c.model) AS name, 
-                   c.seating AS seats, 
-                   c.fuel_type AS fuel, 
+$pickup_date = $_GET['pickup'] ?? '';
+$return_date = $_GET['return'] ?? '';
+$show_results = !empty($pickup_date) && !empty($return_date);
+
+// Fetch cars from database only if dates are provided
+if ($show_results && isset($conn)) {
+    // Fetch cars that are available for the selected date range
+    // Check for overlapping bookings: (new_pickup <= existing_return) AND (new_return >= existing_pickup)
+    $sql = "SELECT c.*,
+                   CONCAT(c.brand, ' ', c.model) AS name,
+                   c.seating AS seats,
+                   c.fuel_type AS fuel,
                    c.tier4_daily AS price,
                    (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS image
-            FROM cars c 
-            WHERE c.status = 'live' 
+            FROM cars c
+            WHERE c.status = 'live'
+              AND c.id NOT IN (
+                  SELECT DISTINCT b.car_id
+                  FROM bookings b
+                  WHERE b.status != 'cancelled'
+                    AND (STR_TO_DATE(?, '%Y-%m-%d %H:%i') <= b.end_date AND STR_TO_DATE(?, '%Y-%m-%d %H:%i') >= b.start_date)
+              )
             ORDER BY c.id DESC";
-    $result = $conn->query($sql);
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $pickup_date, $return_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
     if ($result) {
         while ($row = $result->fetch_assoc()) {
             $cars[] = $row;
@@ -128,8 +145,8 @@ if (isset($conn)) {
     </form>
 </div>
 
-<div id="resultsContainer" style="<?php echo empty($cars) ? 'display: none;' : ''; ?> padding: 4rem 2rem;">
-    <div id="resultsLoader" class="cars-grid" style="<?php echo !empty($cars) ? 'display: none;' : ''; ?>">
+<div id="resultsContainer" style="<?php echo $show_results ? '' : 'display: none;'; ?> padding: 4rem 2rem;">
+    <div id="resultsLoader" class="cars-grid" style="<?php echo $show_results && empty($cars) ? 'display: block;' : 'display: none;'; ?>">
         <div class="skeleton-card">
             <div class="skeleton-image shim"></div>
             <div class="skeleton-details">
@@ -156,7 +173,7 @@ if (isset($conn)) {
         </div>
     </div>
 
-    <div id="resultsContent" style="<?php echo !empty($cars) ? 'display: block;' : 'display: none;'; ?>">
+    <div id="resultsContent" style="<?php echo $show_results && !empty($cars) ? 'display: block;' : 'display: none;'; ?>">
     <div class="results-header" style="text-align: center; margin-bottom: 3rem;">
         <h2 class="section-heading">Available Vehicles</h2>
         <p class="section-subheading">Hand-picked premium rides for your journey</p>
@@ -170,28 +187,38 @@ if (isset($conn)) {
     </div>
 
     <div class="cars-grid" id="carsGrid">
-        <?php foreach ($cars as $car): ?>
-            <div class="car-card" style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; transition: transform 0.2s; background: #fff;">
-                <div class="car-image-wrapper" style="height: 200px; overflow: hidden;">
-                    <!-- Image path from DB is likely 'uploads/cars/...'. Adjusting base path to public/ -->
-                    <img src="/project_xcelrent/public/<?php echo htmlspecialchars($car['image'] ?? 'assets/img/default_car.jpg'); ?>" 
-                         alt="<?php echo htmlspecialchars($car['name'] ?? 'Car'); ?>" 
-                         style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-                <div class="car-details" style="padding: 1.5rem;">
-                    <h3 style="margin: 0 0 0.5rem; font-size: 1.25rem;"><?php echo htmlspecialchars($car['name'] ?? 'Unknown Model'); ?></h3>
-                    <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">
-                        <i class="fa-solid fa-user" style="margin-right: 5px;"></i> <?php echo htmlspecialchars($car['seats'] ?? '4'); ?> Seats &nbsp;|&nbsp; 
-                        <i class="fa-solid fa-gas-pump" style="margin-right: 5px;"></i> <?php echo htmlspecialchars($car['fuel'] ?? 'Gas'); ?>
-                    </p>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 700; font-size: 1.2rem; color: #22c55e;">₱<?php echo number_format($car['price'] ?? 0); ?>/day</span>
-                        <!-- You may need to adjust the onclick function based on your JS implementation -->
-                        <button class="btn btn-primary" onclick="viewCar(<?php echo $car['id']; ?>)">View</button>
+        <?php if ($show_results && !empty($cars)): ?>
+            <?php foreach ($cars as $car): ?>
+                <div class="car-card" style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; transition: transform 0.2s; background: #fff;">
+                    <div class="car-image-wrapper" style="height: 200px; overflow: hidden;">
+                        <!-- Image path from DB is likely 'uploads/cars/...'. Adjusting base path to public/ -->
+                        <img src="/project_xcelrent/public/<?php echo htmlspecialchars($car['image'] ?? 'assets/img/default_car.jpg'); ?>"
+                             alt="<?php echo htmlspecialchars($car['name'] ?? 'Car'); ?>"
+                             style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="car-details" style="padding: 1.5rem;">
+                        <h3 style="margin: 0 0 0.5rem; font-size: 1.25rem;"><?php echo htmlspecialchars($car['name'] ?? 'Unknown Model'); ?></h3>
+                        <p style="color: #666; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <i class="fa-solid fa-user" style="margin-right: 5px;"></i> <?php echo htmlspecialchars($car['seats'] ?? '4'); ?> Seats &nbsp;|&nbsp;
+                            <i class="fa-solid fa-gas-pump" style="margin-right: 5px;"></i> <?php echo htmlspecialchars($car['fuel'] ?? 'Gas'); ?>
+                        </p>
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 700; font-size: 1.2rem; color: #22c55e;">₱<?php echo number_format($car['price'] ?? 0); ?>/day</span>
+                            <!-- You may need to adjust the onclick function based on your JS implementation -->
+                            <button class="btn btn-primary" onclick="viewCar(<?php echo $car['id']; ?>)">View</button>
+                        </div>
                     </div>
                 </div>
+            <?php endforeach; ?>
+        <?php elseif ($show_results && empty($cars)): ?>
+            <div class="no-results-message" style="text-align: center; padding: 3rem; grid-column: 1 / -1;">
+                <div style="font-size: 3rem; margin-bottom: 1rem; color: #ccc;">
+                    <i class="fa-solid fa-car-side"></i>
+                </div>
+                <h3>No cars available for the selected dates</h3>
+                <p style="color: #666; margin-top: 0.5rem;">Try selecting different pickup and return dates</p>
             </div>
-        <?php endforeach; ?>
+        <?php endif; ?>
         </div>
 
     <div class="pagination-container" style="display: flex; justify-content: center; margin-top: 4rem;">
@@ -588,6 +615,33 @@ if (isset($conn)) {
         </div>
     </div>
 </section>
+
+<script>
+// Function to handle search from the fleet page (needed for the cars page search form)
+function searchCarsFromFleet(e) {
+    e.preventDefault();
+
+    const pickupDate = document.getElementById('pickupDateValue').value;
+    const returnDate = document.getElementById('returnDateValue').value;
+
+    if (!pickupDate || !returnDate) {
+        const triggers = document.querySelectorAll('.date-trigger');
+        triggers.forEach(trigger => {
+            const inputId = trigger.nextElementSibling.id;
+            if (!document.getElementById(inputId).value) {
+                trigger.classList.add('input-error');
+                setTimeout(() => trigger.classList.remove('input-error'), 500);
+            }
+        });
+        return;
+    }
+
+    // Redirect to the cars page with search parameters
+    const pickupParam = encodeURIComponent(pickupDate);
+    const returnParam = encodeURIComponent(returnDate);
+    window.location.href = `?page=cars&pickup=${pickupParam}&return=${returnParam}`;
+}
+</script>
 
 <?php
 include __DIR__ . '/../includes/footer.php';

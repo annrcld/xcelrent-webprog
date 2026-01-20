@@ -3,20 +3,50 @@
 $page_title = "Available Cars";
 include __DIR__ . '/../includes/header.php'; // Uses absolute path
 
+// Get date parameters from URL
+$pickup_date = $_GET['pickup'] ?? '';
+$return_date = $_GET['return'] ?? '';
+
 // Fetch cars from database
 $cars = [];
 $db_error = '';
 if (isset($conn)) {
-    $sql = "SELECT c.*, 
-                   CONCAT(c.brand, ' ', c.model) AS name, 
-                   c.seating AS seats, 
-                   c.fuel_type AS fuel, 
-                   c.tier4_daily AS price,
-                   (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS image
-            FROM cars c 
-            WHERE c.status = 'live' 
-            ORDER BY c.id DESC";
-    $result = $conn->query($sql);
+    if (!empty($pickup_date) && !empty($return_date)) {
+        // Fetch cars that are available for the selected date range
+        $sql = "SELECT c.*,
+                       CONCAT(c.brand, ' ', c.model) AS name,
+                       c.seating AS seats,
+                       c.fuel_type AS fuel,
+                       c.tier4_daily AS price,
+                       (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS image
+                FROM cars c
+                WHERE c.status = 'live'
+                  AND c.id NOT IN (
+                      SELECT DISTINCT b.car_id
+                      FROM bookings b
+                      WHERE b.status != 'cancelled'
+                        AND (STR_TO_DATE(?, '%Y-%m-%d %H:%i') <= b.end_date AND STR_TO_DATE(?, '%Y-%m-%d %H:%i') >= b.start_date)
+                  )
+                ORDER BY c.id DESC";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ss", $pickup_date, $return_date);
+        $stmt->execute();
+        $result = $stmt->get_result();
+    } else {
+        // Fetch all live cars if no dates are provided
+        $sql = "SELECT c.*,
+                       CONCAT(c.brand, ' ', c.model) AS name,
+                       c.seating AS seats,
+                       c.fuel_type AS fuel,
+                       c.tier4_daily AS price,
+                       (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS image
+                FROM cars c
+                WHERE c.status = 'live'
+                ORDER BY c.id DESC";
+        $result = $conn->query($sql);
+    }
+
     if ($result) {
         while ($row = $result->fetch_assoc()) {
             $cars[] = $row;
@@ -31,12 +61,12 @@ if (isset($conn)) {
 
 <nav>
     <div class="nav-container">
-        <div class="logo" onclick="window.location.href='home.php'">Xcelrent<span class="dot">.</span></div>
+        <div class="logo" onclick="window.location.href='?page=home'">Xcelrent<span class="dot">.</span></div>
         <div class="nav-links">
-            <a href="home.php">Home</a>
-            <a href="cars.php" class="active">Book</a>
-            <a href="about.php">About</a>
-            <a href="contact.php">Contact</a>
+            <a href="?page=home">Home</a>
+            <a href="?page=cars" class="active">Fleet</a>
+            <a href="?page=about">About</a>
+            <a href="?page=contact">Contact</a>
              <div class="divider-vertical"></div>
             <div class="nav-auth-group">
                 <button class="btn btn-text" onclick="openModal('operatorModal')">Be an Operator</button>
@@ -48,6 +78,35 @@ if (isset($conn)) {
 </nav>
 
 <div class="page-container" style="padding: 6rem 2rem; min-height: 60vh;">
+    <!-- Search Box for Date Selection -->
+    <div class="search-box" style="margin-bottom: 3rem;">
+        <form class="search-form" onsubmit="searchCarsFromFleet(event)">
+            <div class="form-group">
+                <label>Pickup</label>
+                <div class="date-trigger" onclick="openDateModal('pickup')">
+                    <span id="pickupDisplay"><?php echo !empty($pickup_date) ? htmlspecialchars(date('M j, Y g:i A', strtotime($pickup_date))) : 'Date & Time'; ?></span>
+                    <i class="fa-regular fa-calendar"></i>
+                </div>
+                <input type="hidden" id="pickupDateValue" value="<?php echo htmlspecialchars($pickup_date); ?>">
+            </div>
+
+            <div class="form-group">
+                <label>Return</label>
+                <div class="date-trigger" onclick="openDateModal('return')">
+                    <span id="returnDisplay"><?php echo !empty($return_date) ? htmlspecialchars(date('M j, Y g:i A', strtotime($return_date))) : 'Date & Time'; ?></span>
+                    <i class="fa-regular fa-calendar"></i>
+                </div>
+                <input type="hidden" id="returnDateValue" value="<?php echo htmlspecialchars($return_date); ?>">
+            </div>
+
+            <div class="form-group submit-group">
+                <button type="submit" class="btn-search">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
     <div class="results-header" style="text-align: center; margin-bottom: 3rem;">
         <h2 class="section-heading">Our Fleet</h2>
         <p class="section-subheading">Select the perfect vehicle for your trip</p>
@@ -86,6 +145,33 @@ if (isset($conn)) {
         <?php endif; ?>
     </div>
 </div>
+
+<script>
+// Function to handle search from the fleet page
+function searchCarsFromFleet(e) {
+    e.preventDefault();
+
+    const pickupDate = document.getElementById('pickupDateValue').value;
+    const returnDate = document.getElementById('returnDateValue').value;
+
+    if (!pickupDate || !returnDate) {
+        const triggers = document.querySelectorAll('.date-trigger');
+        triggers.forEach(trigger => {
+            const inputId = trigger.nextElementSibling.id;
+            if (!document.getElementById(inputId).value) {
+                trigger.classList.add('input-error');
+                setTimeout(() => trigger.classList.remove('input-error'), 500);
+            }
+        });
+        return;
+    }
+
+    // Redirect to the cars page with search parameters
+    const pickupParam = encodeURIComponent(pickupDate);
+    const returnParam = encodeURIComponent(returnDate);
+    window.location.href = `?page=cars&pickup=${pickupParam}&return=${returnParam}`;
+}
+</script>
 
 <?php
 include __DIR__ . '/../includes/footer.php';

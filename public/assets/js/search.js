@@ -19,8 +19,8 @@ function searchCars(e) {
         return;
     }
 
-    // Redirect to the cars page with search parameters
+    // Redirect to the home page with search parameters to display filtered results
     const pickupParam = encodeURIComponent(pickupDate);
     const returnParam = encodeURIComponent(returnDate);
-    window.location.href = `?page=cars&pickup=${pickupParam}&return=${returnParam}`;
+    window.location.href = `?page=home&pickup=${pickupParam}&return=${returnParam}`;
 }
