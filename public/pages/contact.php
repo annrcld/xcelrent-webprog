@@ -76,13 +76,13 @@ $page_title = "Contact Us";
             <div class="info-card">
                 <i class="fas fa-phone"></i>
                 <h3>Phone</h3>
-                <p>+63 912 345 6789</p>
+                <p>+63 919 209 1927</p>
             </div>
             
             <div class="info-card">
                 <i class="fas fa-envelope"></i>
                 <h3>Email</h3>
-                <p>support@xcelrent.com</p>
+                <p>xcelrentcarrental@gmail.com</p>
             </div>
         </div>
         

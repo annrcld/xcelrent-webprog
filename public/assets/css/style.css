@@ -901,13 +901,23 @@ footer {
 }
 
 /* Guest Notice */
-.guest-notice { 
+.guest-notice {
     background: var(--text-main); color: white;
     padding: 0.5rem 1rem; text-align: center; font-size: 0.85rem;
     position: relative; display: flex; justify-content: center; align-items: center;
 }
+.guest-notice .notice-content {
+    flex: 1;
+    text-align: center;
+}
 .guest-notice a { color: white; text-decoration: underline; cursor: pointer; font-weight: 600; }
-.guest-notice button { position: absolute; right: 20px; background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; }
+.guest-notice button {
+    position: absolute; right: 20px;
+    top: 8px;
+    background: none; border: none;
+    color: white; font-size: 1.2rem;
+    cursor: pointer;
+}
 
 /* --- COMPACT MODAL FORM LAYOUT --- */
 
@@ -1081,7 +1091,8 @@ footer {
 .mobile-be-operator {  
     margin-top: 1rem;  
     width: 100%;  
-  
+}
+
 /* User Greeting Styles */  
 .user-greeting {  
     background: #f8f9fa;  
@@ -1104,3 +1115,4 @@ footer {
     margin: 0;  
     color: #333;  
     font-size: 1.1rem;  
+}
