@@ -14,6 +14,7 @@ $model = trim($_POST['model'] ?? '');
 $category = trim($_POST['category'] ?? '');
 $fuel_type = trim($_POST['fuel_type'] ?? '');
 $driver_type = trim($_POST['driver_type'] ?? '');
+$transmission = trim($_POST['transmission'] ?? '');
 $seating = intval($_POST['seating'] ?? 0);
 $plate = strtoupper(trim($_POST['plate_number'] ?? '')); // Auto-uppercase plate number
 $location = trim($_POST['location'] ?? '');
@@ -47,17 +48,17 @@ $conn->begin_transaction();
 try {
     // Insert Main Vehicle Info + Pricing Tiers
     $sql = "INSERT INTO cars (
-        brand, model, plate_number, category, fuel_type, driver_type, seating, location, status,
+        brand, model, plate_number, category, fuel_type, transmission, driver_type, seating, location, status,
         tier1_12hrs, tier1_24hrs, tier2_12hrs, tier2_24hrs, tier3_24hrs, tier4_daily,
         created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'live', ?, ?, ?, ?, ?, ?, NOW())";
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'live', ?, ?, ?, ?, ?, ?, NOW())";
 
     $stmt = $conn->prepare($sql);
 
-    // Bind: 8 strings (ssssssds) + 6 doubles (dddddd) = 14 total
+    // Bind: 8 strings (ssssssis) + 1 integer (i) + 6 doubles (dddddd) = 15 total
     $stmt->bind_param(
-        "ssssssisdddddd",
-        $brand, $model, $plate, $category, $fuel_type, $driver_type, $seating, $location,
+        "sssssssisdddddd",
+        $brand, $model, $plate, $category, $fuel_type, $transmission, $driver_type, $seating, $location,
         $tier1_12hrs, $tier1_24hrs, $tier2_12hrs, $tier2_24hrs, $tier3_24hrs, $tier4_daily
     );
 

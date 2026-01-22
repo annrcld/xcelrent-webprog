@@ -41,6 +41,11 @@
                         <button type="button" onclick="adjustSeating(1)">+</button>
                     </div>
                 </div>
+                <select name="transmission">
+                    <option value="">-- Transmission --</option>
+                    <option value="Automatic">Automatic</option>
+                    <option value="Manual">Manual</option>
+                </select>
                <input type="text"
                     id="plateInput"
                     placeholder="AAA-1111"
@@ -186,6 +191,7 @@ function loadCarData(id) {
             document.querySelector('[name="fuel_type"]').value = car.fuel_type || '';
             document.querySelector('[name="driver_type"]').value = car.driver_type || '';
             document.querySelector('[name="seating"]').value = car.seating || 4;
+            document.querySelector('[name="transmission"]').value = car.transmission || '';
             document.querySelector('[name="plate_number"]').value = car.plate_number || '';
             document.querySelector('[name="location"]').value = car.location || '';
 

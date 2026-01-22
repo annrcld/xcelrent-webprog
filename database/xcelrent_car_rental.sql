@@ -81,6 +81,7 @@ CREATE TABLE `cars` (
   `plate_number` varchar(50) DEFAULT NULL,
   `category` varchar(50) DEFAULT NULL,
   `fuel_type` varchar(20) DEFAULT NULL,
+  `transmission` varchar(20) DEFAULT NULL,
   `seating` int(11) DEFAULT NULL,
   `location` varchar(100) DEFAULT NULL,
   `status` enum('live','hidden','maintenance') DEFAULT 'live',

@@ -19,6 +19,7 @@ $brand = trim($_POST['brand'] ?? '');
 $model = trim($_POST['model'] ?? '');
 $category = trim($_POST['category'] ?? '');
 $fuel_type = trim($_POST['fuel_type'] ?? '');
+$transmission = trim($_POST['transmission'] ?? '');
 $driver_type = trim($_POST['driver_type'] ?? '');
 $seating = intval($_POST['seating'] ?? 0);
 $plate = strtoupper(trim($_POST['plate_number'] ?? '')); // Auto-uppercase plate number
@@ -48,14 +49,14 @@ if ($tier1_12hrs <= 0 || $tier1_24hrs <= 0 ||
 
 try {
     $sql = "UPDATE cars SET
-        brand = ?, model = ?, plate_number = ?, category = ?, fuel_type = ?, driver_type = ?, seating = ?, location = ?,
+        brand = ?, model = ?, plate_number = ?, category = ?, fuel_type = ?, transmission = ?, driver_type = ?, seating = ?, location = ?,
         tier1_12hrs = ?, tier1_24hrs = ?, tier2_12hrs = ?, tier2_24hrs = ?, tier3_24hrs = ?, tier4_daily = ?
         WHERE id = ?";
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param(
-        "ssssssisddddddi",
-        $brand, $model, $plate, $category, $fuel_type, $driver_type, $seating, $location,
+        "sssssssisddddddi",
+        $brand, $model, $plate, $category, $fuel_type, $transmission, $driver_type, $seating, $location,
         $tier1_12hrs, $tier1_24hrs, $tier2_12hrs, $tier2_24hrs, $tier3_24hrs, $tier4_daily,
         $car_id
     );
