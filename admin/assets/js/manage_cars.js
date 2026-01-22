@@ -5,8 +5,9 @@ function loadCars() {
     const location = document.getElementById('locationFilter')?.value || '';
     const driverType = document.getElementById('driverTypeFilter')?.value || '';
     const status = document.getElementById('statusFilter')?.value || '';
+    const searchTerm = document.getElementById('searchInput')?.value || '';
 
-    fetch(`api/get_cars.php?category=${encodeURIComponent(category)}&status=${encodeURIComponent(status)}&driver_type=${encodeURIComponent(driverType)}&location=${encodeURIComponent(location)}`)
+    fetch(`api/get_cars.php?category=${encodeURIComponent(category)}&status=${encodeURIComponent(status)}&driver_type=${encodeURIComponent(driverType)}&location=${encodeURIComponent(location)}&search=${encodeURIComponent(searchTerm)}`)
         .then(res => res.json())
         .then(response => {
             if (response.success) {
@@ -51,7 +52,11 @@ function renderCars(cars) {
                 <td>${car.location || 'N/A'}</td>
                 <td>${driverTypeLabel}</td>
                 <td class="status-cell">
-                    <span class="badge ${statusClass}">${car.status.toUpperCase()}</span>
+                    <select class="status-dropdown" onchange="updateCarStatus(${car.id}, this.value)" data-original="${car.status}" data-car-id="${car.id}">
+                        <option value="live" ${car.status === 'live' ? 'selected' : ''}>Live</option>
+                        <option value="hidden" ${car.status === 'hidden' ? 'selected' : ''}>Hidden</option>
+                        <option value="maintenance" ${car.status === 'maintenance' ? 'selected' : ''}>Maintenance</option>
+                    </select>
                 </td>
                 <td class="actions-cell">
                     <button onclick="editCar(${car.id})" class="action-btn edit" title="Edit Car">
@@ -93,6 +98,51 @@ function deleteCar(id) {
             alert('Error deleting vehicle. Please try again.');
             console.error(err);
         });
+    }
+}
+
+function updateCarStatus(carId, newStatus) {
+    if (confirm(`Are you sure you want to change the status to "${newStatus}"?`)) {
+        fetch('api/update_car_status.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                id: carId,
+                status: newStatus
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Status updated successfully!');
+                // Reload the cars to reflect the change
+                loadCars();
+            } else {
+                alert('Error updating status: ' + (data.msg || 'Unknown error'));
+                // Revert the dropdown to original value
+                const dropdown = document.querySelector(`.status-dropdown[data-original][data-car-id="${carId}"]`);
+                if (dropdown) {
+                    dropdown.value = dropdown.getAttribute('data-original');
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error updating status. Please try again.');
+            // Revert the dropdown to original value
+            const dropdown = document.querySelector(`.status-dropdown[data-original][data-car-id="${carId}"]`);
+            if (dropdown) {
+                dropdown.value = dropdown.getAttribute('data-original');
+            }
+        });
+    } else {
+        // Revert the dropdown to original value if user cancels
+        const dropdown = document.querySelector(`.status-dropdown[data-original][data-car-id="${carId}"]`);
+        if (dropdown) {
+            dropdown.value = dropdown.getAttribute('data-original');
+        }
     }
 }
 

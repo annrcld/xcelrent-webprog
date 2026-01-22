@@ -6,6 +6,7 @@ $category = trim($_GET['category'] ?? '');
 $status = trim($_GET['status'] ?? '');
 $location = trim($_GET['location'] ?? '');
 $driverType = trim($_GET['driver_type'] ?? '');
+$searchTerm = trim($_GET['search'] ?? '');
 
 $allowedCategories = ['Sedan', 'SUV', 'Van'];
 $allowedStatuses = ['live', 'hidden', 'maintenance'];
@@ -50,6 +51,14 @@ if ($driverType !== '') {
     $sql .= " AND c.driver_type = ?";
     $types .= "s";
     $params[] = $driverType;
+}
+if ($searchTerm !== '') {
+    $sql .= " AND (c.brand LIKE ? OR c.model LIKE ? OR c.plate_number LIKE ?)";
+    $types .= "sss";
+    $searchPattern = "%{$searchTerm}%";
+    $params[] = $searchPattern;
+    $params[] = $searchPattern;
+    $params[] = $searchPattern;
 }
 
 $sql .= " ORDER BY c.created_at DESC";
