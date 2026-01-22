@@ -241,7 +241,7 @@ function moveStep(direction) {
     }
 }
 
-function handleFinalSubmit() {
+async function handleFinalSubmit() {
     // 3. Validate Step 4: All Files Must be Present
     const fileIds = ['up-photos', 'up-or', 'up-deed', 'up-nbi', 'up-license'];
     let allUploaded = true;
@@ -261,6 +261,14 @@ function handleFinalSubmit() {
         return;
     }
 
+    // Validate location
+    const location = document.getElementById('vLocation').value;
+    if (!location) {
+        alert("Please select a location for the vehicle.");
+        document.getElementById('vLocation').focus();
+        return;
+    }
+
     // Collect vehicle details
     const vehicleDetails = {
         vehicleName: document.getElementById('vName').value,
@@ -269,25 +277,52 @@ function handleFinalSubmit() {
         seater: parseInt(document.getElementById('vSeaters').value.match(/\d+/)?.[0]) || 4, // Extract number from seater text
         fuel: document.getElementById('vFuel').value,
         transmission: document.getElementById('vTransmission').value,
-        driverType: document.getElementById('vDriverType').value
+        driverType: document.getElementById('vDriverType').value,
+        location: document.getElementById('vLocation').value
     };
 
-    // Send data to server
-    fetch('/project_xcelrent/public/api/operator_application.php', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(vehicleDetails)
-    })
-    .then(response => {
+    try {
+        // First, submit the vehicle details
+        const response = await fetch('/project_xcelrent/public/api/operator_application.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(vehicleDetails)
+        });
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        return response.json();
-    })
-    .then(data => {
+
+        const data = await response.json();
+
         if (data.success) {
+            // Now upload the car photos
+            const photosInput = document.getElementById('up-photos');
+            if (photosInput.files.length > 0) {
+                const formData = new FormData();
+                formData.append('car_id', data.car_id);
+
+                // Append all photos to the form data
+                for (let i = 0; i < photosInput.files.length; i++) {
+                    formData.append('photos[]', photosInput.files[i]);
+                }
+
+                // Upload photos
+                const photoResponse = await fetch('/project_xcelrent/public/api/upload_car_photos.php', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const photoData = await photoResponse.json();
+
+                if (!photoData.success) {
+                    console.warn('Photo upload failed:', photoData.message);
+                    // Continue anyway, as the main application was successful
+                }
+            }
+
             // SUCCESS STATE
             const modalContent = document.querySelector('#operatorModal .modal-content');
             modalContent.innerHTML = `
@@ -301,11 +336,10 @@ function handleFinalSubmit() {
         } else {
             alert(data.message || "Failed to submit application. Please try again.");
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Submission error:', error);
         alert("An error occurred while submitting your application. Please try again. Error: " + error.message);
-    });
+    }
 }
 
 // --- DYNAMIC SEATER LOGIC ---

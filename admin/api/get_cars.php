@@ -27,7 +27,13 @@ $sql = "SELECT c.*, o.company_name as owner,
         (SELECT COUNT(*) FROM documents d WHERE d.car_id = c.id AND d.verified = 1) as verified_docs
         FROM cars c
         LEFT JOIN operators o ON c.operator_id = o.id
-        WHERE 1=1";
+        WHERE 1=1  -- Base condition to allow additional filters
+        ";
+
+// Add condition to exclude pending status unless specifically requested (keep maintenance visible)
+if ($status !== 'pending') {
+    $sql .= " AND c.status != 'pending'";
+}
 
 $types = "";
 $params = [];

@@ -2,33 +2,24 @@
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../includes/config.php';
 
-$verified = $_GET['verified'] ?? '';
-
+// Get all pending car applications with operator details
 $sql = "
-    SELECT o.id, o.company_name, o.contact_name, o.email, o.phone, o.verified, o.created_at,
-           COUNT(DISTINCT c.id) as total_cars,
-           GROUP_CONCAT(DISTINCT d.doc_type SEPARATOR ', ') as documents
-    FROM operators o
-    LEFT JOIN cars c ON o.id = c.operator_id
-    LEFT JOIN documents d ON d.user_id = o.id OR (o.id = 0 AND d.doc_type = 'operator_doc')
-    WHERE 1=1
+    SELECT c.id as car_id, c.brand, c.model, c.plate_number, c.category, c.seating, c.fuel_type, c.transmission, c.driver_type, c.location, c.created_at as car_created_at,
+           o.id as operator_id, o.company_name, o.contact_name, o.email, o.phone
+    FROM cars c
+    INNER JOIN operators o ON c.operator_id = o.id
+    WHERE c.status = 'pending'  -- Only show cars pending approval
+    ORDER BY c.created_at DESC
 ";
 
-if ($verified === '0' || $verified === '1') {
-    $verified = intval($verified);
-    $sql .= " AND o.verified = $verified";
-}
-
-$sql .= " GROUP BY o.id ORDER BY o.created_at DESC";
-
 $result = $conn->query($sql);
-$operators = [];
+$applications = [];
 
 if ($result) {
     while ($row = $result->fetch_assoc()) {
-        $operators[] = $row;
+        $applications[] = $row;
     }
-    echo json_encode(['success' => true, 'data' => $operators]);
+    echo json_encode(['success' => true, 'data' => $applications]);
 } else {
     http_response_code(500);
     echo json_encode(['success' => false, 'error' => $conn->error]);

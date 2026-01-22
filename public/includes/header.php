@@ -262,6 +262,19 @@ require_once __DIR__ . '/config.php';
                 </select>
             </div>
         </div>
+
+        <div class="form-row-compact">
+            <div class="form-group-inner">
+                <label>Location</label>
+                <select class="minimal-input" id="vLocation">
+                    <option value="" disabled selected>Select...</option>
+                    <option value="Quezon City">Quezon City</option>
+                    <option value="Manila">Manila</option>
+                    <option value="Pasig">Pasig</option>
+                    <option value="Bulacan">Bulacan</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <div class="step-content" id="opStep4">

@@ -84,7 +84,7 @@ CREATE TABLE `cars` (
   `transmission` varchar(20) DEFAULT NULL,
   `seating` int(11) DEFAULT NULL,
   `location` varchar(100) DEFAULT NULL,
-  `status` enum('live','hidden','maintenance') DEFAULT 'live',
+  `status` enum('live','hidden','maintenance','pending') DEFAULT 'pending',
   `created_at` datetime DEFAULT current_timestamp(),
   `driver_type` enum('self_drive','with_driver') DEFAULT 'self_drive',
   `tier1_12hrs` decimal(10,2) DEFAULT 0.00,
