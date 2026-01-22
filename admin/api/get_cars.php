@@ -5,9 +5,15 @@ require_once __DIR__ . '/../includes/config.php';
 $category = trim($_GET['category'] ?? '');
 $status = trim($_GET['status'] ?? '');
 $location = trim($_GET['location'] ?? '');
+$driverType = trim($_GET['driver_type'] ?? '');
 
 $allowedCategories = ['Sedan', 'SUV', 'Van'];
 $allowedStatuses = ['live', 'hidden', 'maintenance'];
+$allowedDriverTypes = ['self_drive', 'with_driver'];
+
+if ($driverType && !in_array($driverType, $allowedDriverTypes)) {
+    $driverType = '';
+}
 
 if ($category && !in_array($category, $allowedCategories)) {
     $category = '';
@@ -39,6 +45,11 @@ if ($location !== '') {
     $sql .= " AND c.location = ?";
     $types .= "s";
     $params[] = $location;
+}
+if ($driverType !== '') {
+    $sql .= " AND c.driver_type = ?";
+    $types .= "s";
+    $params[] = $driverType;
 }
 
 $sql .= " ORDER BY c.created_at DESC";

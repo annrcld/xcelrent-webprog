@@ -1,7 +1,7 @@
 <aside class="sidebar">
     <div class="logo-area">
         <i data-lucide="car" class="logo-icon"></i>
-        <div class="logo-text">XCEL<span>RENT</span></div>
+        <div class="logo-text">Xcelrent<span class="dot">.</span></div>
     </div>
 
     <nav class="sidebar-nav">

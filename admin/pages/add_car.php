@@ -243,10 +243,53 @@ document.getElementById('carForm').addEventListener('submit', function(e) {
 // Seating counter
 function adjustSeating(delta) {
     const input = document.getElementById('seating');
+    const category = document.getElementById('vType').value;
+
+    // Define seating ranges for each category
+    const seatingRanges = {
+        'Sedan': { min: 4, max: 5 },
+        'SUV': { min: 7, max: 9 },
+        'Van': { min: 10, max: 15 }
+    };
+
     let val = parseInt(input.value) + delta;
-    if (val < 1) val = 1;
-    if (val > 20) val = 20; // max seating
+
+    // Apply category-specific limits if category is selected
+    if (category && seatingRanges[category]) {
+        const min = seatingRanges[category].min;
+        const max = seatingRanges[category].max;
+
+        if (val < min) val = min;
+        if (val > max) val = max;
+    } else {
+        // Default limits if no category is selected
+        if (val < 1) val = 1;
+        if (val > 20) val = 20;
+    }
+
     input.value = val;
+}
+
+// Handle category change to update seating capacity
+function handleTypeChange() {
+    const category = document.getElementById('vType').value;
+    const seatingInput = document.getElementById('seating');
+
+    // Define seating ranges for each category
+    const seatingRanges = {
+        'Sedan': { min: 4, max: 5 },
+        'SUV': { min: 7, max: 9 },
+        'Van': { min: 10, max: 15 }
+    };
+
+    if (seatingRanges[category]) {
+        // Set to minimum value for the category
+        const minVal = seatingRanges[category].min;
+        seatingInput.value = minVal;
+
+        // Update the adjustSeating function to respect category limits
+        // We'll need to modify the adjustSeating function to respect these limits
+    }
 }
 
 // Plate coding logic (optional)

@@ -39,7 +39,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>XCELRENT | Admin Login</title>
+    <title>Xcelrent | Admin Login</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         body { background: #121212; display: flex; align-items: center; justify-content: center; height: 100vh; }
@@ -51,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 </head>
 <body>
     <div class="login-card">
-        <h2>XCEL<span>RENT</span></h2>
+        <h2 class="logo-text" style="text-align: center; margin-bottom: 25px;">Xcelrent<span class="dot">.</span></h2>
         <?php if($error): ?> <div class="error-msg"><?php echo $error; ?></div> <?php endif; ?>
         <form method="POST">
             <div style="margin-bottom: 15px;">

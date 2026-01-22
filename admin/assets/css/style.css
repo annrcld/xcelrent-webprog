@@ -46,7 +46,7 @@ body {
     letter-spacing: -1px;
 }
 
-.logo-text span {
+.logo-text .dot {
     color: var(--red);
 }
 
