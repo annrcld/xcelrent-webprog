@@ -1,6 +1,6 @@
 <?php
 // Script to update database schema and add password field to users table
-require_once 'public/includes/config.php';
+require_once '../admin/includes/config.php';
 
 // Check if password column exists in users table
 $checkSql = "SHOW COLUMNS FROM users LIKE 'password'";

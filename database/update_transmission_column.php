@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/admin/includes/config.php';
+require_once __DIR__ . '/../admin/includes/config.php';
 echo "Checking if transmission column exists...\n";
 
 // Check if the transmission column exists
