@@ -269,10 +269,18 @@ async function handleFinalSubmit() {
         return;
     }
 
+    // Validate plate number format
+    const plateNumber = document.getElementById('vPlate').value.trim();
+    if (!validatePlateNumber(plateNumber)) {
+        alert("Please enter a valid plate number format (e.g., ABC1234, ABC-1234, AB123CD, etc.).");
+        document.getElementById('vPlate').focus();
+        return;
+    }
+
     // Collect vehicle details
     const vehicleDetails = {
         vehicleName: document.getElementById('vName').value,
-        plateNumber: document.getElementById('vPlate').value,
+        plateNumber: plateNumber,
         category: document.getElementById('vCategory').value,
         seater: parseInt(document.getElementById('vSeaters').value.match(/\d+/)?.[0]) || 4, // Extract number from seater text
         fuel: document.getElementById('vFuel').value,
@@ -354,4 +362,13 @@ function updateSeaters() {
     };
 
     seatersInput.value = seatingMap[category] || '';
+}
+
+// --- PLATE NUMBER VALIDATION ---
+function validatePlateNumber(plateNumber) {
+    // Regular expression for Philippine plate number format
+    // Accepts formats like: ABC1234, ABC-1234, AB123CD, AB-123-CD, etc.
+    // Allows letters followed by numbers, or letters-numbers-letters combinations
+    const plateRegex = /^[A-Z]{1,3}[-]?[0-9]{1,4}$|^[A-Z]{1,2}[0-9]{1,3}[A-Z]{1,2}$|^[A-Z]{1,2}[-]?[0-9]{1,3}[-]?[A-Z]{1,2}$/i;
+    return plateRegex.test(plateNumber.replace(/\s/g, '')); // Remove spaces before validation
 }

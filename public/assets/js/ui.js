@@ -72,6 +72,12 @@ function setupCustomSelect(selectContainer) {
     });
 }
 
+// Toggle mobile menu
+function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobileMenu');
+    mobileMenu.classList.toggle('active');
+}
+
 // Global click to close dropdowns and modals
 window.onclick = function(event) {
     if (event.target.classList.contains('modal')) {
@@ -80,7 +86,23 @@ window.onclick = function(event) {
     if (!event.target.closest('.custom-select')) {
         document.querySelectorAll('.custom-select').forEach(s => s.classList.remove('active'));
     }
+
+    // Close mobile menu if clicking outside of it
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    if (mobileMenu && mobileMenu.classList.contains('active') &&
+        !event.target.closest('#mobileMenu') && !event.target.closest('.mobile-menu-btn')) {
+        mobileMenu.classList.remove('active');
+    }
 }
+
+// Add event listener for mobile menu button
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+    }
+});
 
 /* --- DATE MODAL LOGIC --- */
 function openDateModal(type) {

@@ -33,23 +33,61 @@ require_once __DIR__ . '/config.php';
             </div>
 
             <div class="user-menu" id="userMenu" style="<?php echo (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) ? 'display: flex;' : 'display: none;'; ?>">
-                <div class="user-avatar" onclick="toggleDropdown()">
+                <div class="user-greeting" onclick="toggleDropdown()">
                     <?php
-                    if (isset($_SESSION['user_first_name']) && isset($_SESSION['user_last_name'])) {
-                        echo htmlspecialchars(substr($_SESSION['user_first_name'], 0, 1) . substr($_SESSION['user_last_name'], 0, 1));
+                    if (isset($_SESSION['user_first_name'])) {
+                        // Set timezone to Philippine Standard Time (GMT+8)
+                        date_default_timezone_set('Asia/Manila');
+
+                        $firstName = $_SESSION['user_first_name'];
+
+                        // Get current hour for time-appropriate greeting
+                        $currentHour = date('H');
+
+                        if ($currentHour >= 5 && $currentHour < 12) {
+                            $greeting = "Good morning";
+                        } elseif ($currentHour >= 12 && $currentHour < 17) {
+                            $greeting = "Good afternoon";
+                        } elseif ($currentHour >= 17 && $currentHour < 21) {
+                            $greeting = "Good evening";
+                        } else {
+                            $greeting = "Good night";
+                        }
+
+                        echo htmlspecialchars("$greeting, $firstName!");
                     } else {
-                        echo 'GB';
+                        echo 'Welcome!';
                     }
                     ?>
                 </div>
                 <div class="dropdown-menu" id="dropdownMenu">
-                    <a onclick="logout()">Log out</a>
+                    <!-- Empty dropdown - options only in mobile menu -->
                 </div>
             </div>
         </div>
         <div class="mobile-menu-btn"><i class="fa-solid fa-bars"></i></div>
     </div>
 </nav>
+
+<!-- Mobile Menu -->
+<div class="mobile-menu" id="mobileMenu">
+    <div class="mobile-menu-header">
+        <div class="logo">Xcelrent<span class="dot">.</span></div>
+        <button class="mobile-menu-close" onclick="toggleMobileMenu()">&times;</button>
+    </div>
+
+    <div class="mobile-menu-content">
+        <div id="mobileAuthLinks" style="<?php echo (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) ? 'display: block;' : 'display: none;'; ?>">
+            <a href="?page=profile">Profile</a>
+            <a href="?page=settings">Settings</a>
+            <a href="#" onclick="logout(); toggleMobileMenu(); return false;">Log Out</a>
+        </div>
+
+        <div id="mobileSignInLink" style="<?php echo (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) ? 'display: none;' : 'display: block;'; ?>">
+            <a href="#" onclick="openModal('loginModal'); toggleMobileMenu(); return false;">Sign In</a>
+        </div>
+    </div>
+</div>
 
 <div class="guest-notice" id="guestNotice" style="<?php echo (isset($_SESSION['logged_in']) && $_SESSION['logged_in']) ? 'display: none;' : 'display: block;'; ?>">
     <div class="notice-content">
@@ -217,7 +255,7 @@ require_once __DIR__ . '/config.php';
             </div>
             <div class="form-group-inner">
                 <label>Plate Number</label>
-                <input type="text" placeholder="ABC 1234" class="minimal-input" id="vPlate">
+                <input type="text" placeholder="ABC-1234" class="minimal-input" id="vPlate" maxlength="8" oninput="formatPlateNumber(this)">
             </div>
         </div>
 
@@ -311,3 +349,61 @@ require_once __DIR__ . '/config.php';
     </div>
 </div>
 </div>
+
+<script>
+function formatPlateNumber(input) {
+    // Get the current value and remove any non-alphanumeric characters except dashes
+    let value = input.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase(); // Convert to uppercase
+
+    // Limit to 8 characters total
+    value = value.substring(0, 8);
+
+    // Separate letters and numbers
+    let letters = '';
+    let numbers = '';
+
+    // Extract letters (first 3 characters)
+    for (let i = 0; i < Math.min(value.length, 3); i++) {
+        if (/[A-Z]/.test(value[i])) {  // Only uppercase letters
+            letters += value[i];
+        } else {
+            break;
+        }
+    }
+
+    // Extract numbers (remaining characters after letters)
+    for (let i = letters.length; i < value.length; i++) {
+        if (/[0-9]/.test(value[i])) {
+            numbers += value[i];
+        }
+    }
+
+    // Format as LETTERS-NUMBERS (max 3 letters, max 4 numbers)
+    let formattedValue = letters;
+    if (numbers.length > 0) {
+        formattedValue += '-' + numbers.substring(0, 4);
+    }
+
+    // Update the input value
+    input.value = formattedValue;
+}
+
+// Add event listener to enforce format when user types
+document.addEventListener('DOMContentLoaded', function() {
+    const plateInput = document.getElementById('vPlate');
+    if (plateInput) {
+        // Prevent non-alphanumeric characters except dash
+        plateInput.addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            if (!/[A-Za-z0-9]/.test(char) && e.which !== 0 && e.keyCode !== 8 && e.keyCode !== 9 && e.keyCode !== 13 && e.keyCode !== 46 && e.keyCode !== 37 && e.keyCode !== 39) {
+                e.preventDefault();
+            }
+        });
+
+        // Also format on input (in case user pastes content)
+        plateInput.addEventListener('input', function() {
+            formatPlateNumber(this);
+        });
+    }
+});
+</script>
