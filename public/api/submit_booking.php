@@ -86,7 +86,8 @@ if (!$car) {
 }
 
 $daily_rate = $car['tier4_daily'];
-$total_amount = $daily_rate * $rental_days;
+$reservation_fee = 500; // Fixed reservation fee
+$total_amount = ($daily_rate * $rental_days) - $reservation_fee; // Deduct reservation fee from total
 
 // Insert booking into database
 $stmt = $conn->prepare("INSERT INTO bookings (car_id, renter_first_name, renter_last_name, renter_email, renter_phone, 

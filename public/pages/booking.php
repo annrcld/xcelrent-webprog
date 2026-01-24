@@ -327,7 +327,7 @@ if ($return_date) {
 
         <div class="summary-row">
             <span>Reservation Fee (Deductible)</span>
-            <span id="reservationFee">₱500.00</span>
+            <span id="reservationFee">-₱500.00</span>
         </div>
 
         <div class="summary-row total-row">
@@ -423,7 +423,7 @@ if ($return_date) {
             <h4 id="qrTitle">Scan QR Code for Payment</h4>
             <p id="qrInstruction" style="color: var(--text-muted); margin-bottom: 1rem;">Please scan this QR code with your payment app</p>
             <img id="qrCodeImage" class="qr-image" src="" alt="QR Code">
-            <p style="margin-top: 1rem; font-weight: 600;">Total to Pay: <span id="qrAmount" style="color: var(--accent-red); font-size: 1.2rem;">₱0.00</span></p>
+            <p style="margin-top: 1rem; font-weight: 600;">Pay  <span style="color: var(--accent-red); font-size: 1.2rem;">₱500</span> now as reservation fee.<br>The remaining balance of <span id="qrAmount">₱0.00</span> will be settled upon vehicle turnover.</p>
         </div>
 
         <!-- Proof of Payment Upload -->
@@ -463,11 +463,12 @@ function calculateTotalAmount(dailyRate) {
     const rentalDays = calculateRentalDays();
     const subtotal = dailyRate * rentalDays;
     const reservationFee = 500;
-    const totalAmount = subtotal; // Reservation fee is deductible from total
-    
+    const totalAmount = subtotal - reservationFee; // Reservation fee is deducted from total
+
     document.getElementById('rentalDays').textContent = `${rentalDays} day${rentalDays !== 1 ? 's' : ''}`;
     document.getElementById('dailyRate').textContent = `₱${dailyRate.toFixed(2)}`;
     document.getElementById('subtotal').textContent = `₱${subtotal.toFixed(2)}`;
+    document.getElementById('reservationFee').textContent = `-₱${reservationFee.toFixed(2)}`;
     document.getElementById('totalAmount').textContent = `₱${totalAmount.toFixed(2)}`;
     document.getElementById('qrAmount').textContent = `₱${totalAmount.toFixed(2)}`;
 }
