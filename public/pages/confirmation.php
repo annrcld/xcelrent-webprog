@@ -73,7 +73,7 @@ $page_title = "Booking Confirmed";
             
             <div class="detail-row">
                 <span>Booking Reference</span>
-                <span>#XCR-<?php echo date('Ymd') . rand(1000, 9999); ?></span>
+                <span id="bookingReference">#XCR-XXXXXXXX</span>
             </div>
             
             <div class="detail-row">
@@ -112,18 +112,52 @@ $page_title = "Booking Confirmed";
 </div>
 
 <script>
-// Load booking details from session or mock data
+// Load booking details from the API
 document.addEventListener('DOMContentLoaded', function() {
-    // In a real implementation, this would fetch from the database
-    // For now, we'll use mock data
-    document.getElementById('customerName').textContent = 'John Doe';
-    document.getElementById('vehicleName').textContent = 'Toyota Vios 2026';
-    document.getElementById('pickupDate').textContent = 'Jan 25, 2026 at 10:00 AM';
-    document.getElementById('returnDate').textContent = 'Jan 28, 2026 at 6:00 PM';
-    document.getElementById('totalAmount').textContent = '₱5,340.00';
+    // Get booking ID from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const bookingId = urlParams.get('booking_id');
+
+    if (bookingId) {
+        fetch(`/project_xcelrent/public/api/get_booking_details.php?id=${bookingId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const booking = data.data;
+
+                    // Update booking details
+                    document.getElementById('customerName').textContent = booking.customer_name;
+                    document.getElementById('vehicleName').textContent = booking.vehicle;
+                    document.getElementById('pickupDate').textContent = booking.pickup_date;
+                    document.getElementById('returnDate').textContent = booking.return_date;
+                    document.getElementById('totalAmount').textContent = booking.total_amount;
+
+                    // Update booking reference
+                    document.getElementById('bookingReference').textContent = booking.reference;
+                } else {
+                    console.error('Error loading booking details:', data.message);
+                    alert('Error loading booking details: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching booking details:', error);
+                console.error('Error name:', error.name);
+                console.error('Error message:', error.message);
+
+                // Check if it's a network error
+                if (error instanceof TypeError && error.message.includes('fetch')) {
+                    alert('Network error: Could not connect to the server. Please check your connection and try again.');
+                } else {
+                    alert('Error loading booking details: ' + error.message + '. Please try again.');
+                }
+            });
+    } else {
+        console.warn('No booking ID found in URL');
+        alert('No booking ID found. Please go back and complete a booking first.');
+    }
 });
 </script>
 
 <?php
-include '../includes/footer.php';
+include __DIR__ . '/../includes/footer.php';
 ?>

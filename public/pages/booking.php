@@ -244,6 +244,104 @@ if ($return_date) {
             grid-template-columns: 1fr;
         }
     }
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+    position: relative;
+    animation: modalAppear 0.3s ease-out;
+}
+
+@keyframes modalAppear {
+    from { opacity: 0; transform: translateY(-50px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.close:hover {
+    color: var(--accent-red);
+}
+
+.modal-icon {
+    font-size: 4rem;
+    color: #22c55e;
+    margin: 1rem 0;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-dark);
+}
+
+.modal-message {
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.btn-modal {
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.btn-primary-modal {
+    background: var(--accent-red);
+    color: white;
+}
+
+.btn-primary-modal:hover {
+    background: #c52233;
+}
+
+.btn-outline-modal {
+    background: transparent;
+    border: 1px solid var(--accent-red);
+    color: var(--accent-red);
+}
+
+.btn-outline-modal:hover {
+    background: var(--accent-red);
+    color: white;
+}
 </style>
 
 <div class="booking-container">
@@ -681,10 +779,19 @@ async function submitBooking() {
         }
 
         const data = await response.json();
-        // ... rest of your logic
+
+        if (data.success) {
+            // Clear session storage
+            sessionStorage.removeItem('selectedPaymentMethod');
+
+            // Show success modal
+            showSuccessModal(data.booking_id);
+        } else {
+            alert('Error: ' + (data.message || 'Failed to submit booking'));
+        }
     } catch (error) {
-        console.error('Detailed Error:', error);
-        alert('Debug Info: ' + error.message);
+        console.error('Error submitting booking:', error);
+        alert('An error occurred while submitting your booking. Please try again.');
     }
 }
 
@@ -697,4 +804,51 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = '?page=cars';
     }
 });
+
+// Success Modal HTML
+const modalHtml = `
+<div id="successModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <div class="modal-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h2 class="modal-title">Booking Submitted Successfully!</h2>
+        <p class="modal-message">Your reservation is pending approval. You will receive a confirmation once approved.</p>
+        <p class="modal-message">Booking Reference: <strong id="bookingRef"></strong></p>
+        <div class="modal-actions">
+            <button class="btn-modal btn-outline-modal" onclick="closeModal()">Close</button>
+            <button class="btn-modal btn-primary-modal" onclick="goToConfirmation()">View Confirmation</button>
+        </div>
+    </div>
+</div>
+`;
+
+// Append modal to body
+document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+// Show success modal function
+function showSuccessModal(bookingId) {
+    document.getElementById('bookingRef').textContent = 'XCR-' + bookingId;
+    document.getElementById('successModal').style.display = 'block';
+}
+
+// Close modal function
+function closeModal() {
+    document.getElementById('successModal').style.display = 'none';
+}
+
+// Go to confirmation page
+function goToConfirmation() {
+    const bookingId = document.getElementById('bookingRef').textContent.replace('XCR-', '');
+    window.location.href = '?page=confirmation&booking_id=' + bookingId;
+}
+
+// Close modal when clicking outside of it
+window.onclick = function(event) {
+    const modal = document.getElementById('successModal');
+    if (event.target == modal) {
+        modal.style.display = 'none';
+    }
+}
 </script>
