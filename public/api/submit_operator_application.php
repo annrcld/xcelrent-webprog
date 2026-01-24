@@ -83,6 +83,13 @@ try {
         // Use existing operator record
         $existing = $existingOperator->fetch_assoc();
         $operatorId = $existing['id'];
+
+        // Update the existing operator record with current user info
+        $updateOperatorSql = "UPDATE operators SET phone = ? WHERE id = ?";
+        $updateStmt = $conn->prepare($updateOperatorSql);
+        $updateStmt->bind_param("si", $userPhone, $operatorId);
+        $updateStmt->execute();
+        $updateStmt->close();
     } else {
         // Create new operator record
         $insertOperatorSql = "INSERT INTO operators (company_name, contact_name, email, phone, verified) VALUES (?, ?, ?, ?, 0)";

@@ -70,6 +70,7 @@ try {
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_first_name'] = $user['first_name'];
             $_SESSION['user_last_name'] = $user['last_name'];
+            $_SESSION['user_phone'] = $user['phone'];
             $_SESSION['logged_in'] = true;
 
             echo json_encode([
@@ -103,6 +104,7 @@ try {
             $_SESSION['user_email'] = $user['email'];
             $_SESSION['user_first_name'] = $user['first_name'];
             $_SESSION['user_last_name'] = $user['last_name'];
+            $_SESSION['user_phone'] = $user['phone'];
             $_SESSION['logged_in'] = true;
 
             echo json_encode([
