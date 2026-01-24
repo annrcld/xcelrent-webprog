@@ -1,6 +1,7 @@
 <?php
 // public/api/get_booking_details.php
 header('Content-Type: application/json');
+date_default_timezone_set('Asia/Manila'); // Set timezone to Philippines (UTC+8)
 require_once __DIR__ . '/../includes/config.php';
 
 $booking_id = $_GET['id'] ?? null;
@@ -44,8 +45,7 @@ try {
             'return_date' => date('M j, Y \a\t g:i A', strtotime($booking['end_date'])),
             'total_amount' => '₱' . number_format(floatval($booking['total_amount']), 2),
             'status' => $booking['status'],
-            // Displays the uploaded car image or a default one if empty
-            'image' => !empty($booking['image']) ? '/project_xcelrent/public/' . $booking['image'] : '/project_xcelrent/public/assets/img/default_car.jpg'
+            'image' => $booking['image'] ? '/project_xcelrent/public/' . $booking['image'] : '/project_xcelrent/public/assets/img/default_car.jpg'
         ]
     ]);
 

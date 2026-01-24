@@ -1,6 +1,7 @@
 <?php
 // public/api/submit_booking.php
 header('Content-Type: application/json');
+date_default_timezone_set('Asia/Manila'); // Set to Philippines timezone (UTC+8)
 session_start();
 require_once __DIR__ . '/../includes/config.php';
 
@@ -30,9 +31,29 @@ $return_date_raw = $_POST['return_date'] ?? '';
 $special_requests = $_POST['special_requests'] ?? '';
 $payment_method = $_POST['payment_method'] ?? '';
 
-// 1. Convert ISO Date strings to MySQL format (YYYY-MM-DD HH:MM:SS)
-$start_date = date('Y-m-d H:i:s', strtotime($pickup_date_raw));
-$end_date = date('Y-m-d H:i:s', strtotime($return_date_raw));
+// 1. Convert Date strings to MySQL format (YYYY-MM-DD HH:MM:SS) with timezone handling
+// Handle different date formats that might come from JavaScript
+// If the date string ends with 'Z', it's in UTC; otherwise, treat as local time
+if (substr($pickup_date_raw, -1) === 'Z') {
+    // Date is in UTC, convert to Philippines time
+    $pickup_datetime = new DateTime($pickup_date_raw, new DateTimeZone('UTC'));
+    $pickup_datetime->setTimezone(new DateTimeZone('Asia/Manila'));
+} else {
+    // Date is in local time, interpret as Philippines time
+    $pickup_datetime = new DateTime($pickup_date_raw, new DateTimeZone('Asia/Manila'));
+}
+
+if (substr($return_date_raw, -1) === 'Z') {
+    // Date is in UTC, convert to Philippines time
+    $return_datetime = new DateTime($return_date_raw, new DateTimeZone('UTC'));
+    $return_datetime->setTimezone(new DateTimeZone('Asia/Manila'));
+} else {
+    // Date is in local time, interpret as Philippines time
+    $return_datetime = new DateTime($return_date_raw, new DateTimeZone('Asia/Manila'));
+}
+
+$start_date = $pickup_datetime->format('Y-m-d H:i:s');
+$end_date = $return_datetime->format('Y-m-d H:i:s');
 
 // Validate required fields
 if (!$car_id || !$first_name || !$last_name || !$email || !$phone || 
@@ -80,9 +101,9 @@ if (!move_uploaded_file($file['tmp_name'], $upload_path)) {
     exit;
 }
 
-// Calculate rental days
-$start_dt = new DateTime($start_date);
-$end_dt = new DateTime($end_date);
+// Calculate rental days with timezone awareness
+$start_dt = new DateTime($start_date, new DateTimeZone('Asia/Manila'));
+$end_dt = new DateTime($end_date, new DateTimeZone('Asia/Manila'));
 $rental_days = max(1, $start_dt->diff($end_dt)->days);
 
 // Get car details for pricing
@@ -104,38 +125,38 @@ $total_amount = ($daily_rate * $rental_days) - $reservation_fee;
 // 2. Insert booking into database matching your EXACT schema
 // Types: i (int), s (string), d (double/decimal)
 $sql = "INSERT INTO bookings (
-    car_id, user_id, start_date, end_date, total_amount, 
-    renter_first_name, renter_last_name, renter_email, renter_phone, 
-    pickup_location, return_location, rental_days, daily_rate, 
+    car_id, user_id, start_date, end_date, total_amount,
+    renter_first_name, renter_last_name, renter_email, renter_phone,
+    pickup_location, return_location, rental_days, daily_rate,
     payment_method, proof_of_payment, special_requests, status, created_at
 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())";
 
 $stmt = $conn->prepare($sql);
 
 // Bind mapping: iissd sssss s i d s s s
-$stmt->bind_param("iissdsssssssidss", 
-    $car_id, 
-    $user_id, 
-    $start_date, 
-    $end_date, 
-    $total_amount, 
-    $first_name, 
-    $last_name, 
-    $email, 
-    $phone, 
-    $pickup_location, 
-    $return_location, 
-    $rental_days, 
-    $daily_rate, 
-    $payment_method, 
-    $db_path, 
+$stmt->bind_param("iissdsssssssidss",
+    $car_id,
+    $user_id,
+    $start_date,
+    $end_date,
+    $total_amount,
+    $first_name,
+    $last_name,
+    $email,
+    $phone,
+    $pickup_location,
+    $return_location,
+    $rental_days,
+    $daily_rate,
+    $payment_method,
+    $db_path,
     $special_requests
 );
 
 if ($stmt->execute()) {
     $booking_id = $conn->insert_id;
     echo json_encode([
-        'success' => true, 
+        'success' => true,
         'message' => 'Booking submitted successfully',
         'booking_id' => $booking_id
     ]);
