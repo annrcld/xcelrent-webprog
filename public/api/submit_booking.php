@@ -4,8 +4,16 @@ header('Content-Type: application/json');
 session_start();
 require_once __DIR__ . '/../includes/config.php';
 
+// Check if user is logged in (Crucial for the user_id foreign key)
+$user_id = $_SESSION['user_id'] ?? null;
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     echo json_encode(['success' => false, 'message' => 'Invalid request method']);
+    exit;
+}
+
+if (!$user_id) {
+    echo json_encode(['success' => false, 'message' => 'User not logged in. Please log in to complete booking.']);
     exit;
 }
 
@@ -17,14 +25,18 @@ $email = $_POST['email'] ?? '';
 $phone = $_POST['phone'] ?? '';
 $pickup_location = $_POST['pickup_location'] ?? '';
 $return_location = $_POST['return_location'] ?? '';
-$pickup_date = $_POST['pickup_date'] ?? '';
-$return_date = $_POST['return_date'] ?? '';
+$pickup_date_raw = $_POST['pickup_date'] ?? '';
+$return_date_raw = $_POST['return_date'] ?? '';
 $special_requests = $_POST['special_requests'] ?? '';
 $payment_method = $_POST['payment_method'] ?? '';
 
+// 1. Convert ISO Date strings to MySQL format (YYYY-MM-DD HH:MM:SS)
+$start_date = date('Y-m-d H:i:s', strtotime($pickup_date_raw));
+$end_date = date('Y-m-d H:i:s', strtotime($return_date_raw));
+
 // Validate required fields
 if (!$car_id || !$first_name || !$last_name || !$email || !$phone || 
-    !$pickup_location || !$return_location || !$pickup_date || !$return_date || !$payment_method) {
+    !$pickup_location || !$return_location || !$pickup_date_raw || !$return_date_raw || !$payment_method) {
     echo json_encode(['success' => false, 'message' => 'All required fields must be filled']);
     exit;
 }
@@ -69,16 +81,16 @@ if (!move_uploaded_file($file['tmp_name'], $upload_path)) {
 }
 
 // Calculate rental days
-$start = new DateTime($pickup_date);
-$end = new DateTime($return_date);
-$rental_days = max(1, $start->diff($end)->days);
+$start_dt = new DateTime($start_date);
+$end_dt = new DateTime($end_date);
+$rental_days = max(1, $start_dt->diff($end_dt)->days);
 
 // Get car details for pricing
-$stmt = $conn->prepare("SELECT tier4_daily FROM cars WHERE id = ?");
-$stmt->bind_param("i", $car_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$car = $result->fetch_assoc();
+$stmt_car = $conn->prepare("SELECT tier4_daily FROM cars WHERE id = ?");
+$stmt_car->bind_param("i", $car_id);
+$stmt_car->execute();
+$car_result = $stmt_car->get_result();
+$car = $car_result->fetch_assoc();
 
 if (!$car) {
     echo json_encode(['success' => false, 'message' => 'Car not found']);
@@ -86,30 +98,35 @@ if (!$car) {
 }
 
 $daily_rate = $car['tier4_daily'];
-$reservation_fee = 500; // Fixed reservation fee
-$total_amount = ($daily_rate * $rental_days) - $reservation_fee; // Deduct reservation fee from total
+$reservation_fee = 500; 
+$total_amount = ($daily_rate * $rental_days) - $reservation_fee;
 
-// Insert booking into database
-$stmt = $conn->prepare("INSERT INTO bookings (car_id, renter_first_name, renter_last_name, renter_email, renter_phone, 
-                         pickup_location, return_location, start_date, end_date, rental_days, daily_rate, total_amount, 
-                         payment_method, proof_of_payment, special_requests, status, created_at) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())");
+// 2. Insert booking into database matching your EXACT schema
+// Types: i (int), s (string), d (double/decimal)
+$sql = "INSERT INTO bookings (
+    car_id, user_id, start_date, end_date, total_amount, 
+    renter_first_name, renter_last_name, renter_email, renter_phone, 
+    pickup_location, return_location, rental_days, daily_rate, 
+    payment_method, proof_of_payment, special_requests, status, created_at
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())";
 
-$stmt->bind_param("issssssssiddsss", 
+$stmt = $conn->prepare($sql);
 
+// Bind mapping: iissd sssss s i d s s s
+$stmt->bind_param("iissdsssssssidss", 
     $car_id, 
     $user_id, 
+    $start_date, 
+    $end_date, 
+    $total_amount, 
     $first_name, 
     $last_name, 
     $email, 
     $phone, 
     $pickup_location, 
     $return_location, 
-    $pickup_date, 
-    $return_date, 
     $rental_days, 
     $daily_rate, 
-    $total_amount, 
     $payment_method, 
     $db_path, 
     $special_requests
