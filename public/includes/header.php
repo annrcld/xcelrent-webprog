@@ -14,6 +14,25 @@ require_once __DIR__ . '/config.php';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/project_xcelrent/public/assets/css/style.css">
+    <style>
+        .alert-error {
+            padding: 10px;
+            background-color: #f8d7da;
+            color: #721c24;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-success {
+            padding: 10px;
+            background-color: #d4edda;
+            color: #155724;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
 </head>
 <body>
 
@@ -106,6 +125,7 @@ require_once __DIR__ . '/config.php';
             <input type="password" placeholder="Password" required class="minimal-input">
             <button type="submit" class="btn btn-primary full-width">Sign In</button>
         </form>
+        <p class="modal-footer-text">Forgot password? <a onclick="openForgotPasswordModal()">Reset password</a></p>
         <p class="modal-footer-text">New here? <a onclick="closeModal('loginModal'); openModal('signupModal')">Create account</a></p>
     </div>
 </div>
@@ -350,6 +370,23 @@ require_once __DIR__ . '/config.php';
 </div>
 </div>
 
+<!-- Forgot Password Modal -->
+<div id="forgotPasswordModal" class="modal center-flex">
+    <div class="modal-content minimal-modal">
+        <span class="close" onclick="closeModal('forgotPasswordModal')">&times;</span>
+        <h2>Reset Your Password</h2>
+        <p>Enter your email address and we'll send you a link to reset your password.</p>
+
+        <div id="forgotPasswordAlert"></div>
+
+        <form onsubmit="handleForgotPassword(event)">
+            <input type="email" id="forgotPasswordEmail" placeholder="Email" required class="minimal-input">
+            <button type="submit" class="btn btn-primary full-width">Send Reset Link</button>
+        </form>
+        <p class="modal-footer-text">Remember your password? <a onclick="closeModal('forgotPasswordModal'); openModal('loginModal')">Sign in</a></p>
+    </div>
+</div>
+
 <script>
 function formatPlateNumber(input) {
     // Get the current value and remove any non-alphanumeric characters except dashes
@@ -406,4 +443,56 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Forgot Password Functions
+function openForgotPasswordModal() {
+    document.getElementById('loginModal').style.display = 'none';
+    document.getElementById('forgotPasswordModal').style.display = 'flex';
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).style.display = 'none';
+
+    // Clear form fields when closing modals
+    if (modalId === 'forgotPasswordModal') {
+        document.getElementById('forgotPasswordEmail').value = '';
+        document.getElementById('forgotPasswordAlert').innerHTML = '';
+    }
+}
+
+function handleForgotPassword(event) {
+    event.preventDefault();
+
+    const email = document.getElementById('forgotPasswordEmail').value;
+
+    // Basic email validation
+    if (!email || !email.includes('@')) {
+        document.getElementById('forgotPasswordAlert').innerHTML = '<div class="alert-error">Please enter a valid email address</div>';
+        return;
+    }
+
+    // Call API to send reset link
+    fetch('/project_xcelrent/public/api/forgot_password.php', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('forgotPasswordAlert').innerHTML = '<div class="alert-success">' + data.message + '</div>';
+            // Clear the form after successful submission
+            document.getElementById('forgotPasswordEmail').value = '';
+            // Optionally redirect after a delay or just show success message
+        } else {
+            document.getElementById('forgotPasswordAlert').innerHTML = '<div class="alert-error">' + (data.message || 'An error occurred. Please try again.') + '</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('forgotPasswordAlert').innerHTML = '<div class="alert-error">An error occurred. Please try again.</div>';
+    });
+}
 </script>

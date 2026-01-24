@@ -11,7 +11,8 @@ $available_pages = [
     'cars' => 'pages/cars.php',
     'booking' => 'pages/booking.php',
     'payment' => 'pages/payment.php',
-    'confirmation' => 'pages/confirmation.php'
+    'confirmation' => 'pages/confirmation.php',
+    'profile' => 'pages/profile.php'
 ];
 
 // Get requested page
@@ -31,7 +32,8 @@ $page_titles = [
     'cars' => 'Available Cars',
     'booking' => 'Book a Car',
     'payment' => 'Payment',
-    'confirmation' => 'Booking Confirmation'
+    'confirmation' => 'Booking Confirmation',
+    'profile' => 'Profile Settings'
 ];
 
 $page_title = $page_titles[$page] ?? 'Xcelrent Car Rental';
