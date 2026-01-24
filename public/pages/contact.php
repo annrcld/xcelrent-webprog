@@ -76,13 +76,19 @@ $page_title = "Contact Us";
             <div class="info-card">
                 <i class="fas fa-phone"></i>
                 <h3>Phone</h3>
-                <p>+63 919 209 1927</p>
+                <p><a href="tel:+639192091927" style="color: var(--accent-red); text-decoration: none;">+63 919 209 1927</a></p>
             </div>
             
             <div class="info-card">
                 <i class="fas fa-envelope"></i>
                 <h3>Email</h3>
-                <p>xcelrentcarrental@gmail.com</p>
+                <p><a href="mailto:xcelrentcarrental@gmail.com" style="color: var(--accent-red); text-decoration: none;">xcelrentcarrental@gmail.com</a></p>
+            </div>
+
+            <div class="info-card">
+                <i class="fab fa-facebook-messenger"></i>
+                <h3>Messenger</h3>
+                <p><a href="https://m.me/xcelrentcarrental" target="_blank" style="color: var(--accent-red); text-decoration: none;">Chat with us</a></p>
             </div>
         </div>
         

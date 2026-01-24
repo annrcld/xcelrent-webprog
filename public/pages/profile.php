@@ -232,13 +232,19 @@ if (!isset($_SESSION['user_id'])) {
             <div class="form-group">
                 <label>Email Address</label>
                 <input type="email" class="form-control" id="email" value="<?php echo htmlspecialchars($user['email']); ?>" required>
-                <button type="button" class="btn btn-outline" style="margin-top: 0.5rem;" onclick="initiateVerification('email')">Verify Email Change</button>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-outline" onclick="initiateVerification('email')">Verify Email Change</button>
+                    <a href="mailto:<?php echo urlencode($user['email']); ?>" class="btn btn-outline" style="text-decoration: none;">Send Email</a>
+                </div>
             </div>
 
             <div class="form-group">
                 <label>Phone Number</label>
                 <input type="tel" class="form-control" id="phone" value="<?php echo htmlspecialchars($user['phone']); ?>" required>
-                <button type="button" class="btn btn-outline" style="margin-top: 0.5rem;" onclick="initiateVerification('phone')">Verify Phone Change</button>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <button type="button" class="btn btn-outline" onclick="initiateVerification('phone')">Verify Phone Change</button>
+                    <a href="tel:<?php echo urlencode($user['phone']); ?>" class="btn btn-outline" style="text-decoration: none;">Call Phone</a>
+                </div>
             </div>
 
             <button class="btn btn-primary" onclick="updatePersonalInfo()">Save Changes</button>
