@@ -157,7 +157,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
-<?php
-include __DIR__ . '/../includes/footer.php';
-?>
