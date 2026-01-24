@@ -2,56 +2,84 @@
 // public/pages/cars.php
 $page_title = "Available Cars";
 
-// Get date parameters from URL
+// Get parameters from URL
 $pickup_date = $_GET['pickup'] ?? '';
 $return_date = $_GET['return'] ?? '';
+$category_filter = $_GET['category'] ?? '';
+$location_filter = $_GET['location'] ?? '';
 
 // Fetch cars from database
 $cars = [];
 $db_error = '';
 if (isset($conn)) {
+    // Build base query
+    $sql = "SELECT c.*,
+                   CONCAT(c.brand, ' ', c.model) AS name,
+                   c.seating AS seats,
+                   c.fuel_type AS fuel,
+                   c.tier4_daily AS price,
+                   (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS image
+            FROM cars c
+            WHERE c.status = 'live'";
+
+    $params = [];
+    $types = "";
+
+    // Add date availability condition if dates are provided
     if (!empty($pickup_date) && !empty($return_date)) {
-        // Fetch cars that are available for the selected date range
-        $sql = "SELECT c.*,
-                       CONCAT(c.brand, ' ', c.model) AS name,
-                       c.seating AS seats,
-                       c.fuel_type AS fuel,
-                       c.tier4_daily AS price,
-                       (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS image
-                FROM cars c
-                WHERE c.status = 'live'
-                  AND c.id NOT IN (
+        $sql .= " AND c.id NOT IN (
                       SELECT DISTINCT b.car_id
                       FROM bookings b
                       WHERE b.status != 'cancelled'
                         AND (STR_TO_DATE(?, '%Y-%m-%d %H:%i') <= b.end_date AND STR_TO_DATE(?, '%Y-%m-%d %H:%i') >= b.start_date)
-                  )
-                ORDER BY c.id DESC";
-
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ss", $pickup_date, $return_date);
-        $stmt->execute();
-        $result = $stmt->get_result();
-    } else {
-        // Fetch all live cars if no dates are provided
-        $sql = "SELECT c.*,
-                       CONCAT(c.brand, ' ', c.model) AS name,
-                       c.seating AS seats,
-                       c.fuel_type AS fuel,
-                       c.tier4_daily AS price,
-                       (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS image
-                FROM cars c
-                WHERE c.status = 'live'
-                ORDER BY c.id DESC";
-        $result = $conn->query($sql);
+                  )";
+        $params[] = $pickup_date;
+        $params[] = $return_date;
+        $types .= "ss";
     }
 
-    if ($result) {
-        while ($row = $result->fetch_assoc()) {
-            $cars[] = $row;
+    // Add category filter if provided
+    if (!empty($category_filter)) {
+        $sql .= " AND c.category = ?";
+        $params[] = $category_filter;
+        $types .= "s";
+    }
+
+    // Add location filter if provided
+    if (!empty($location_filter)) {
+        $sql .= " AND c.location = ?";
+        $params[] = $location_filter;
+        $types .= "s";
+    }
+
+    $sql .= " ORDER BY c.id DESC";
+
+    try {
+        if (!empty($params)) {
+            $stmt = $conn->prepare($sql);
+            if ($stmt === false) {
+                throw new Exception("Prepare failed: " . $conn->error);
+            }
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result === false) {
+                throw new Exception("Execute failed: " . $stmt->error);
+            }
+        } else {
+            $result = $conn->query($sql);
+            if ($result === false) {
+                throw new Exception("Query failed: " . $conn->error);
+            }
         }
-    } else {
-        $db_error = "Query failed: " . $conn->error;
+
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $cars[] = $row;
+            }
+        }
+    } catch (Exception $e) {
+        $db_error = "Query failed: " . $e->getMessage();
     }
 } else {
     $db_error = "Database connection failed. Check config.php";
@@ -79,6 +107,28 @@ if (isset($conn)) {
                     <i class="fa-regular fa-calendar"></i>
                 </div>
                 <input type="hidden" id="returnDateValue" value="<?php echo htmlspecialchars($return_date); ?>">
+            </div>
+
+            <div class="form-group">
+                <label>Type</label>
+                <select class="form-control" id="categoryFilter">
+                    <option value="">All Types</option>
+                    <option value="Sedan" <?php echo (isset($_GET['category']) && $_GET['category'] === 'Sedan') ? 'selected' : ''; ?>>Sedan</option>
+                    <option value="SUV" <?php echo (isset($_GET['category']) && $_GET['category'] === 'SUV') ? 'selected' : ''; ?>>SUV</option>
+                    <option value="Van" <?php echo (isset($_GET['category']) && $_GET['category'] === 'Van') ? 'selected' : ''; ?>>Van</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Where To</label>
+                <select class="form-control" id="locationFilter">
+                    <option value="">All Areas</option>
+                    <option value="Quezon City" <?php echo (isset($_GET['location']) && $_GET['location'] === 'Quezon City') ? 'selected' : ''; ?>>Quezon City</option>
+                    <option value="Manila" <?php echo (isset($_GET['location']) && $_GET['location'] === 'Manila') ? 'selected' : ''; ?>>Manila</option>
+                    <option value="Makati" <?php echo (isset($_GET['location']) && $_GET['location'] === 'Makati') ? 'selected' : ''; ?>>Makati</option>
+                    <option value="Pasig" <?php echo (isset($_GET['location']) && $_GET['location'] === 'Pasig') ? 'selected' : ''; ?>>Pasig</option>
+                    <option value="Bulacan" <?php echo (isset($_GET['location']) && $_GET['location'] === 'Bulacan') ? 'selected' : ''; ?>>Bulacan</option>
+                </select>
             </div>
 
             <div class="form-group submit-group">
@@ -135,6 +185,8 @@ function searchCarsFromFleet(e) {
 
     const pickupDate = document.getElementById('pickupDateValue').value;
     const returnDate = document.getElementById('returnDateValue').value;
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    const locationFilter = document.getElementById('locationFilter').value;
 
     if (!pickupDate || !returnDate) {
         const triggers = document.querySelectorAll('.date-trigger');
@@ -148,10 +200,18 @@ function searchCarsFromFleet(e) {
         return;
     }
 
-    // Redirect to the cars page with search parameters
-    const pickupParam = encodeURIComponent(pickupDate);
-    const returnParam = encodeURIComponent(returnDate);
-    window.location.href = `?page=cars&pickup=${pickupParam}&return=${returnParam}`;
+    // Build URL with all search parameters
+    let url = `?page=cars&pickup=${encodeURIComponent(pickupDate)}&return=${encodeURIComponent(returnDate)}`;
+
+    if (categoryFilter) {
+        url += `&category=${encodeURIComponent(categoryFilter)}`;
+    }
+
+    if (locationFilter) {
+        url += `&location=${encodeURIComponent(locationFilter)}`;
+    }
+
+    window.location.href = url;
 }
 </script>
 

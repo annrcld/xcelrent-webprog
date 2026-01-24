@@ -97,6 +97,50 @@ $page_title = "Payment";
         padding-top: 1rem;
         margin-top: 1rem;
     }
+
+    .bank-options {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-top: 1rem;
+    }
+
+    .bank-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .bank-option {
+        background: white;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid #ddd;
+    }
+
+    .bank-option:hover {
+        border-color: var(--accent-red);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .bank-option.selected {
+        border-color: var(--accent-red);
+        background: #fff5f5;
+    }
+
+    .bank-qr {
+        max-width: 100%;
+        max-height: 150px;
+        margin-bottom: 0.5rem;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
 </style>
 
 <div class="payment-container">
@@ -122,6 +166,29 @@ $page_title = "Payment";
             <i class="fas fa-university fa-2x" style="color: var(--accent-red); margin-bottom: 0.5rem;"></i>
             <h3>Bank Transfer</h3>
             <p>Direct bank deposit</p>
+        </div>
+
+        <!-- Bank Options for QR Code Display -->
+        <div id="bankOptions" class="bank-options" style="display: none; margin-top: 20px;">
+            <h4>Select Bank:</h4>
+            <div class="bank-grid">
+                <div class="bank-option" onclick="selectBank('bdo')">
+                    <img src="assets/images/qr_codes/bdo_qr.png" alt="BDO QR Code" class="bank-qr" id="bdoQr" style="display: none;">
+                    <span>BDO</span>
+                </div>
+                <div class="bank-option" onclick="selectBank('bpi')">
+                    <img src="assets/images/qr_codes/bpi_qr.png" alt="BPI QR Code" class="bank-qr" id="bpiQr" style="display: none;">
+                    <span>BPI</span>
+                </div>
+                <div class="bank-option" onclick="selectBank('metrobank')">
+                    <img src="assets/images/qr_codes/metrobank_qr.png" alt="Metrobank QR Code" class="bank-qr" id="metrobankQr" style="display: none;">
+                    <span>Metrobank</span>
+                </div>
+                <div class="bank-option" onclick="selectBank('gcash')">
+                    <img src="assets/images/qr_codes/gcash_qr.png" alt="GCash QR Code" class="bank-qr" id="gcashQr" style="display: none;">
+                    <span>GCash</span>
+                </div>
+            </div>
         </div>
         
         <div class="payment-option" onclick="selectPaymentMethod('gcash')">
@@ -202,12 +269,12 @@ function selectPaymentMethod(method) {
     document.querySelectorAll('.payment-option').forEach(option => {
         option.classList.remove('selected');
     });
-    
+
     // Add selected class to clicked option
     event.currentTarget.classList.add('selected');
-    
+
     selectedPaymentMethod = method;
-    
+
     // Update form title based on selected method
     const titles = {
         'credit_card': 'Credit Card Information',
@@ -215,14 +282,48 @@ function selectPaymentMethod(method) {
         'bank_transfer': 'Bank Transfer Details',
         'gcash': 'GCash Payment Details'
     };
-    
+
     document.getElementById('paymentTitle').textContent = titles[method] || 'Payment Information';
-    
-    // Show payment form
-    document.getElementById('paymentForm').style.display = 'block';
-    
-    // Scroll to payment form
-    document.getElementById('paymentForm').scrollIntoView({ behavior: 'smooth' });
+
+    // Handle bank transfer method specially - show bank options instead of form
+    const bankOptions = document.getElementById('bankOptions');
+    const paymentForm = document.getElementById('paymentForm');
+
+    if (method === 'bank_transfer') {
+        bankOptions.style.display = 'block';
+        paymentForm.style.display = 'none'; // Don't show regular form for bank transfer
+    } else {
+        bankOptions.style.display = 'none';
+        paymentForm.style.display = 'block';
+    }
+
+    // Scroll to payment form or bank options
+    if (method === 'bank_transfer') {
+        bankOptions.scrollIntoView({ behavior: 'smooth' });
+    } else {
+        paymentForm.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+
+function selectBank(bank) {
+    // Remove selected class from all bank options
+    document.querySelectorAll('.bank-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+
+    // Add selected class to clicked option
+    event.currentTarget.classList.add('selected');
+
+    // Hide all QR codes first
+    document.querySelectorAll('.bank-qr').forEach(qr => {
+        qr.style.display = 'none';
+    });
+
+    // Show the selected bank's QR code
+    const qrElement = document.getElementById(`${bank}Qr`);
+    if (qrElement) {
+        qrElement.style.display = 'block';
+    }
 }
 
 // Format card number as user types
@@ -326,5 +427,5 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <?php
-include '../includes/footer.php';
+include __DIR__ . '/../includes/footer.php';
 ?>

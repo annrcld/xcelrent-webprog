@@ -1,47 +1,47 @@
 <?php
-// public/api/get_car_details.php
-
-header('Content-Type: application/json');
-
-// Include the database configuration
+header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../includes/config.php';
 
-// Check if the database connection is established
-if (!isset($conn) || $conn->connect_error) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Database connection failed.']);
-    exit;
-}
+$carId = intval($_GET['id'] ?? 0);
 
-// Check if car ID is provided and is a number
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
+if (!$carId) {
     http_response_code(400);
-    echo json_encode(['error' => 'Invalid car ID provided.']);
+    echo json_encode(['success' => false, 'error' => 'Car ID is required']);
     exit;
 }
 
-$carId = intval($_GET['id']);
+try {
+    // Get car details with operator information
+    $sql = "
+        SELECT c.*, o.company_name as operator_company, o.contact_name as operator_contact, o.email as operator_email, o.phone as operator_phone,
+               (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS car_image
+        FROM cars c
+        LEFT JOIN operators o ON c.operator_id = o.id
+        WHERE c.id = ?
+    ";
 
-// Prepare and execute the query to prevent SQL injection
-$sql = "SELECT c.*, 
-               CONCAT(c.brand, ' ', c.model) AS name, 
-               c.seating AS seats, 
-               c.fuel_type AS fuel, 
-               c.tier4_daily AS price,
-               'Automatic' as transmission, 
-               (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS image
-        FROM cars c WHERE c.id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $carId);
-$stmt->execute();
-$result = $stmt->get_result();
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $carId);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-if ($car = $result->fetch_assoc()) {
-    echo json_encode($car);
-} else {
-    http_response_code(404);
-    echo json_encode(['error' => 'Car not found.']);
+    if ($result->num_rows === 0) {
+        http_response_code(404);
+        echo json_encode(['success' => false, 'error' => 'Car not found']);
+        exit;
+    }
+
+    $car = $result->fetch_assoc();
+    
+    echo json_encode([
+        'success' => true,
+        'car' => $car
+    ]);
+
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
 
-$stmt->close();
 $conn->close();
+?>

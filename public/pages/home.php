@@ -6,12 +6,13 @@ $page_title = "Home";
 $cars = [];
 $pickup_date = $_GET['pickup'] ?? '';
 $return_date = $_GET['return'] ?? '';
+$driver_type = $_GET['driver_type'] ?? '';
+$area = $_GET['area'] ?? '';
 $show_results = !empty($pickup_date) && !empty($return_date);
 
 // Fetch cars from database only if dates are provided
 if ($show_results && isset($conn)) {
-    // Fetch cars that are available for the selected date range
-    // Check for overlapping bookings: (new_pickup <= existing_return) AND (new_return >= existing_pickup)
+    // Build base query
     $sql = "SELECT c.*,
                    CONCAT(c.brand, ' ', c.model) AS name,
                    c.seating AS seats,
@@ -19,24 +20,84 @@ if ($show_results && isset($conn)) {
                    c.tier4_daily AS price,
                    (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS image
             FROM cars c
-            WHERE c.status = 'live'
-              AND c.id NOT IN (
-                  SELECT DISTINCT b.car_id
-                  FROM bookings b
-                  WHERE b.status != 'cancelled'
-                    AND (STR_TO_DATE(?, '%Y-%m-%d %H:%i') <= b.end_date AND STR_TO_DATE(?, '%Y-%m-%d %H:%i') >= b.start_date)
-              )
-            ORDER BY c.id DESC";
+            WHERE c.status = 'live'";
 
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ss", $pickup_date, $return_date);
-    $stmt->execute();
-    $result = $stmt->get_result();
+    $params = [];
+    $types = "";
 
-    if ($result) {
-        while ($row = $result->fetch_assoc()) {
-            $cars[] = $row;
+    // Add date availability condition
+    if (!empty($pickup_date) && !empty($return_date)) {
+        $sql .= " AND c.id NOT IN (
+                      SELECT DISTINCT b.car_id
+                      FROM bookings b
+                      WHERE b.status != 'cancelled'
+                        AND (STR_TO_DATE(?, '%Y-%m-%d %H:%i') <= b.end_date AND STR_TO_DATE(?, '%Y-%m-%d %H:%i') >= b.start_date)
+                  )";
+        $params[] = $pickup_date;
+        $params[] = $return_date;
+        $types .= "ss";
+    }
+
+    // Add driver type filter
+    if (!empty($driver_type)) {
+        $driver_type_value = $driver_type === 'self' ? 'self_drive' : 'with_driver';
+        $sql .= " AND c.driver_type = ?";
+        $params[] = $driver_type_value;
+        $types .= "s";
+    }
+
+    // Add location/area filter
+    if (!empty($area)) {
+        // Map area values to location values in the database
+        switch ($area) {
+            case 'metro':
+                // For Metro Manila, include common Metro Manila locations
+                $sql .= " AND (c.location LIKE '%Quezon City%' OR c.location LIKE '%Manila%' OR c.location LIKE '%Makati%' OR c.location LIKE '%Pasig%' OR c.location LIKE '%Mandaluyong%' OR c.location LIKE '%San Juan%' OR c.location LIKE '%Pasay%' OR c.location LIKE '%Taguig%' OR c.location LIKE '%Parañaque%' OR c.location LIKE '%Muntinlupa%' OR c.location LIKE '%Marikina%' OR c.location LIKE '%Pasay%' OR c.location LIKE '%Valenzuela%' OR c.location LIKE '%Las Piñas%' OR c.location LIKE '%Malabon%' OR c.location LIKE '%Navotas%' OR c.location LIKE '%Caloocan%' OR c.location LIKE '%Bulacan%' OR c.location LIKE '%Pampanga%')";
+                break;
+            case 'outside':
+                // For outside Metro, exclude common Metro Manila locations
+                $sql .= " AND c.location NOT LIKE '%Quezon City%' AND c.location NOT LIKE '%Manila%' AND c.location NOT LIKE '%Makati%' AND c.location NOT LIKE '%Pasig%' AND c.location NOT LIKE '%Mandaluyong%' AND c.location NOT LIKE '%San Juan%' AND c.location NOT LIKE '%Pasay%' AND c.location NOT LIKE '%Taguig%' AND c.location NOT LIKE '%Parañaque%' AND c.location NOT LIKE '%Muntinlupa%' AND c.location NOT LIKE '%Marikina%' AND c.location NOT LIKE '%Pasay%' AND c.location NOT LIKE '%Valenzuela%' AND c.location NOT LIKE '%Las Piñas%' AND c.location NOT LIKE '%Malabon%' AND c.location NOT LIKE '%Navotas%' AND c.location NOT LIKE '%Caloocan%'";
+                break;
+            case 'luzon':
+                // For Luzon, no specific location filter needed, show all
+                break;
+            default:
+                // If it's a specific location, use it directly
+                $sql .= " AND c.location LIKE ?";
+                $params[] = '%' . $area . '%';
+                $types .= "s";
+                break;
         }
+    }
+
+    $sql .= " ORDER BY c.id DESC";
+
+    try {
+        if (!empty($params)) {
+            $stmt = $conn->prepare($sql);
+            if ($stmt === false) {
+                throw new Exception("Prepare failed: " . $conn->error);
+            }
+            $stmt->bind_param($types, ...$params);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result === false) {
+                throw new Exception("Execute failed: " . $stmt->error);
+            }
+        } else {
+            $result = $conn->query($sql);
+            if ($result === false) {
+                throw new Exception("Query failed: " . $conn->error);
+            }
+        }
+
+        if ($result) {
+            while ($row = $result->fetch_assoc()) {
+                $cars[] = $row;
+            }
+        }
+    } catch (Exception $e) {
+        $db_error = "Query failed: " . $e->getMessage();
     }
 }
 ?>
@@ -54,30 +115,41 @@ if ($show_results && isset($conn)) {
         <div class="form-group">
             <label>Type</label>
             <div class="custom-select" id="typeSelect">
-                <input type="hidden" id="driverOption" value="self">
+                <input type="hidden" id="driverOption" value="<?php echo htmlspecialchars($_GET['driver_type'] ?? 'self'); ?>">
                 <div class="select-trigger">
-                    <span>Self-Drive</span>
+                    <span><?php
+                        $driverType = $_GET['driver_type'] ?? 'self';
+                        echo $driverType === 'self' ? 'Self-Drive' : 'With Driver';
+                    ?></span>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <div class="custom-options">
-                    <div class="option selected" data-value="self">Self-Drive</div>
-                    <div class="option" data-value="driver">With Driver</div>
+                    <div class="option <?php echo ($driverType === 'self') ? 'selected' : ''; ?>" data-value="self">Self-Drive</div>
+                    <div class="option <?php echo ($driverType === 'driver') ? 'selected' : ''; ?>" data-value="driver">With Driver</div>
                 </div>
             </div>
         </div>
 
         <div class="form-group">
-            <label>Where to?</label>
+            <label>Area</label>
             <div class="custom-select" id="destinationSelect">
-                <input type="hidden" id="destinationValue" value="metro">
+                <input type="hidden" id="destinationValue" value="<?php echo htmlspecialchars($_GET['area'] ?? 'metro'); ?>">
                 <div class="select-trigger">
-                    <span>Metro Manila</span>
+                    <span><?php
+                        $area = $_GET['area'] ?? 'metro';
+                        switch ($area) {
+                            case 'metro': echo 'Metro Manila'; break;
+                            case 'outside': echo 'Outside Metro'; break;
+                            case 'luzon': echo 'Any point of Luzon'; break;
+                            default: echo ucfirst(str_replace('_', ' ', $area)); break;
+                        }
+                    ?></span>
                     <i class="fa-solid fa-chevron-down"></i>
                 </div>
                 <div class="custom-options">
-                    <div class="option selected" data-value="metro">Metro Manila</div>
-                    <div class="option" data-value="outside">Outside Metro</div>
-                    <div class="option" data-value="luzon">Any point of Luzon</div>
+                    <div class="option <?php echo ($area === 'metro') ? 'selected' : ''; ?>" data-value="metro">Metro Manila</div>
+                    <div class="option <?php echo ($area === 'outside') ? 'selected' : ''; ?>" data-value="outside">Outside Metro</div>
+                    <div class="option <?php echo ($area === 'luzon') ? 'selected' : ''; ?>" data-value="luzon">Any point of Luzon</div>
                 </div>
             </div>
         </div>
@@ -85,19 +157,19 @@ if ($show_results && isset($conn)) {
         <div class="form-group">
             <label>Pickup</label>
             <div class="date-trigger" onclick="openDateModal('pickup')">
-                <span id="pickupDisplay">Date & Time</span>
+                <span id="pickupDisplay"><?php echo !empty($pickup_date) ? htmlspecialchars(date('M j, Y g:i A', strtotime($pickup_date))) : 'Date & Time'; ?></span>
                 <i class="fa-regular fa-calendar"></i>
             </div>
-            <input type="hidden" id="pickupDateValue">
+            <input type="hidden" id="pickupDateValue" value="<?php echo htmlspecialchars($pickup_date); ?>">
         </div>
 
         <div class="form-group">
             <label>Return</label>
             <div class="date-trigger" onclick="openDateModal('return')">
-                <span id="returnDisplay">Date & Time</span>
+                <span id="returnDisplay"><?php echo !empty($return_date) ? htmlspecialchars(date('M j, Y g:i A', strtotime($return_date))) : 'Date & Time'; ?></span>
                 <i class="fa-regular fa-calendar"></i>
             </div>
-            <input type="hidden" id="returnDateValue">
+            <input type="hidden" id="returnDateValue" value="<?php echo htmlspecialchars($return_date); ?>">
         </div>
 
         <div class="form-group submit-group">
@@ -398,6 +470,101 @@ document.addEventListener('DOMContentLoaded', function() {
             scrollToSection('testimonials');
         }, 100);
     }
+});
+
+// Function to view car details and proceed to booking
+function viewCar(carId) {
+    if (!carId) {
+        console.error("viewCar called with no carId.");
+        return;
+    }
+
+    // Get the selected dates from the form
+    const pickupDate = document.getElementById('pickupDateValue')?.value;
+    const returnDate = document.getElementById('returnDateValue')?.value;
+
+    // Redirect to the booking page with car ID and dates
+    let bookingUrl = `?page=booking&car_id=${carId}`;
+    if (pickupDate && returnDate) {
+        bookingUrl += `&pickup=${encodeURIComponent(pickupDate)}&return=${encodeURIComponent(returnDate)}`;
+    }
+
+    window.location.href = bookingUrl;
+}
+// Add JavaScript to handle custom select functionality
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle custom select for driver type
+    const typeSelect = document.getElementById('typeSelect');
+    const typeTrigger = typeSelect.querySelector('.select-trigger');
+    const typeOptions = typeSelect.querySelectorAll('.option');
+    const typeHiddenInput = typeSelect.querySelector('input[type="hidden"]');
+
+    typeTrigger.addEventListener('click', function() {
+        const optionsContainer = this.nextElementSibling;
+        optionsContainer.classList.toggle('active');
+    });
+
+    typeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove selected class from all options
+            typeOptions.forEach(opt => opt.classList.remove('selected'));
+
+            // Add selected class to clicked option
+            this.classList.add('selected');
+
+            // Update the trigger text
+            typeTrigger.querySelector('span').textContent = this.textContent;
+
+            // Update the hidden input value
+            typeHiddenInput.value = this.getAttribute('data-value');
+
+            // Close the options
+            this.parentElement.classList.remove('active');
+        });
+    });
+
+    // Handle custom select for destination
+    const destSelect = document.getElementById('destinationSelect');
+    const destTrigger = destSelect.querySelector('.select-trigger');
+    const destOptions = destSelect.querySelectorAll('.option');
+    const destHiddenInput = destSelect.querySelector('input[type="hidden"]');
+
+    destTrigger.addEventListener('click', function() {
+        const optionsContainer = this.nextElementSibling;
+        optionsContainer.classList.toggle('active');
+    });
+
+    destOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            // Remove selected class from all options
+            destOptions.forEach(opt => opt.classList.remove('selected'));
+
+            // Add selected class to clicked option
+            this.classList.add('selected');
+
+            // Update the trigger text
+            destTrigger.querySelector('span').textContent = this.textContent;
+
+            // Update the hidden input value
+            destHiddenInput.value = this.getAttribute('data-value');
+
+            // Close the options
+            this.parentElement.classList.remove('active');
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!typeSelect.contains(e.target)) {
+            const options = typeSelect.querySelector('.custom-options');
+            if (options) options.classList.remove('active');
+        }
+
+        if (!destSelect.contains(e.target)) {
+            const options = destSelect.querySelector('.custom-options');
+            if (options) options.classList.remove('active');
+        }
+    });
 });
 </script>
 
