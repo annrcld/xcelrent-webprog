@@ -1,47 +1,38 @@
 <?php
-header('Content-Type: application/json; charset=utf-8');
+// public/api/get_car_details.php
+header('Content-Type: application/json');
 require_once __DIR__ . '/../includes/config.php';
 
-$carId = intval($_GET['id'] ?? 0);
+$car_id = $_GET['id'] ?? null;
 
-if (!$carId) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'error' => 'Car ID is required']);
+if (!$car_id) {
+    echo json_encode(['error' => 'Car ID is required']);
     exit;
 }
 
-try {
-    // Get car details with operator information
-    $sql = "
-        SELECT c.*, o.company_name as operator_company, o.contact_name as operator_contact, o.email as operator_email, o.phone as operator_phone,
-               (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS car_image
-        FROM cars c
-        LEFT JOIN operators o ON c.operator_id = o.id
-        WHERE c.id = ?
-    ";
+// Fetch car details with primary image
+$stmt = $conn->prepare("
+    SELECT c.*, 
+           CONCAT(c.brand, ' ', c.model) AS name,
+           c.seating AS seats,
+           c.fuel_type AS fuel,
+           c.tier4_daily AS price,
+           (SELECT file_path FROM car_photos WHERE car_id = c.id ORDER BY is_primary DESC LIMIT 1) AS image
+    FROM cars c
+    WHERE c.id = ?
+");
 
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $carId);
-    $stmt->execute();
-    $result = $stmt->get_result();
+$stmt->bind_param("i", $car_id);
+$stmt->execute();
+$result = $stmt->get_result();
 
-    if ($result->num_rows === 0) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'error' => 'Car not found']);
-        exit;
-    }
-
+if ($result->num_rows > 0) {
     $car = $result->fetch_assoc();
-    
-    echo json_encode([
-        'success' => true,
-        'car' => $car
-    ]);
-
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    echo json_encode($car);
+} else {
+    echo json_encode(['error' => 'Car not found']);
 }
 
+$stmt->close();
 $conn->close();
 ?>
