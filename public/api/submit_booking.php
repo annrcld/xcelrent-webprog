@@ -96,7 +96,9 @@ $stmt = $conn->prepare("INSERT INTO bookings (car_id, renter_first_name, renter_
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', NOW())");
 
 $stmt->bind_param("issssssssiddsss", 
+
     $car_id, 
+    $user_id, 
     $first_name, 
     $last_name, 
     $email, 

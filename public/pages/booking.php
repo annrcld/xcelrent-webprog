@@ -666,27 +666,25 @@ async function submitBooking() {
     formData.append('payment_method', selectedPaymentMethod);
     formData.append('proof_of_payment', proofFile);
     
+// Replace the end of your submitBooking function with this:
     try {
         const response = await fetch('/project_xcelrent/public/api/submit_booking.php', {
             method: 'POST',
             body: formData
         });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Clear session storage
-            sessionStorage.removeItem('selectedPaymentMethod');
-            
-            // Redirect to confirmation page
-            alert('Booking submitted successfully! Your reservation is pending approval.');
-            window.location.href = '?page=confirmation&booking_id=' + data.booking_id;
-        } else {
-            alert('Error: ' + (data.message || 'Failed to submit booking'));
+
+        // CHECK IF THE RESPONSE IS OK
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Server Error Response:', errorText);
+            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
         }
+
+        const data = await response.json();
+        // ... rest of your logic
     } catch (error) {
-        console.error('Error submitting booking:', error);
-        alert('An error occurred while submitting your booking. Please try again.');
+        console.error('Detailed Error:', error);
+        alert('Debug Info: ' + error.message);
     }
 }
 
@@ -700,7 +698,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
-<?php
-include __DIR__ . '/../includes/footer.php';
-?>

@@ -1,4 +1,8 @@
 RewriteEngine On
+
+# If the request is for an actual file or directory, serve it directly
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ router.php?page=$1 [QSA,L]
+
+# Otherwise, route through index.php
+RewriteRule ^(.*)$ index.php [QSA,L]

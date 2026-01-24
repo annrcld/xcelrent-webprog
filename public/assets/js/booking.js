@@ -14,15 +14,8 @@ function viewCar(carId) {
     const pickupDate = document.getElementById('pickupDateValue')?.value || '';
     const returnDate = document.getElementById('returnDateValue')?.value || '';
     
-    // Navigate to booking page with car ID and dates
-    const params = new URLSearchParams({
-        page: 'booking',
-        car_id: carId,
-        pickup: pickupDate,
-        return: returnDate
-    });
-    
-    window.location.href = `?${params.toString()}`;
+    // Use ABSOLUTE path to index.php
+    window.location.href = `/project_xcelrent/public/index.php?page=booking&car_id=${carId}&pickup=${encodeURIComponent(pickupDate)}&return=${encodeURIComponent(returnDate)}`;
 }
 
 function goBackToResults() {
@@ -31,8 +24,8 @@ function goBackToResults() {
     const returnDate = sessionStorage.getItem('return_date') || '';
     
     if (pickupDate && returnDate) {
-        window.location.href = `?page=cars&pickup=${encodeURIComponent(pickupDate)}&return=${encodeURIComponent(returnDate)}`;
+        window.location.href = `/project_xcelrent/public/index.php?page=cars&pickup=${encodeURIComponent(pickupDate)}&return=${encodeURIComponent(returnDate)}`;
     } else {
-        window.location.href = '?page=cars';
+        window.location.href = '/project_xcelrent/public/index.php?page=cars';
     }
 }

@@ -214,7 +214,3 @@ function searchCarsFromFleet(e) {
     window.location.href = url;
 }
 </script>
-
-<?php
-include __DIR__ . '/../includes/footer.php';
-?>
