@@ -4,8 +4,8 @@ $page_title = "Book a Car";
 
 // Get car ID from URL parameter
 $car_id = $_GET['car_id'] ?? null;
-$pickup_date = $_GET['pickup'] ?? null;
-$return_date = $_GET['return'] ?? null;
+$pickup_date = $_GET['pickup'] ?? '';
+$return_date = $_GET['return'] ?? '';
 
 // Store dates in session for later use
 if ($pickup_date) {
@@ -75,6 +75,36 @@ if ($return_date) {
         font-weight: 600;
     }
 
+    .vehicle-details-section {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 2rem;
+    }
+
+    .vehicle-card {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 2rem;
+        align-items: start;
+    }
+
+    .vehicle-specs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .vehicle-specs .spec {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
     .booking-form {
         background: white;
         padding: 2.5rem;
@@ -116,7 +146,7 @@ if ($return_date) {
         background: var(--bg-secondary);
         padding: 2rem;
         border-radius: 16px;
-        margin-top: 2rem;
+        margin-bottom: 2rem;
     }
 
     .summary-row {
@@ -133,6 +163,7 @@ if ($return_date) {
         border-top: 2px solid var(--border-color);
         padding-top: 1rem;
         margin-top: 1rem;
+        border-bottom: none;
     }
     
     .payment-methods {
@@ -173,9 +204,10 @@ if ($return_date) {
     }
     
     .qr-image {
-        max-width: 200px;
-        max-height: 200px;
-        margin: 0 auto;
+        max-width: 300px;
+        max-height: 300px;
+        margin: 1rem auto;
+        display: block;
     }
     
     .proof-upload {
@@ -184,6 +216,8 @@ if ($return_date) {
         border: 2px dashed #ccc;
         border-radius: 12px;
         text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
     }
     
     .proof-upload.dragover {
@@ -199,6 +233,16 @@ if ($return_date) {
         max-width: 200px;
         max-height: 200px;
         border-radius: 8px;
+    }
+
+    @media (max-width: 768px) {
+        .vehicle-card {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -232,7 +276,7 @@ if ($return_date) {
         <h3>Vehicle Details</h3>
         <div class="vehicle-card">
             <div class="vehicle-image-container">
-                <img id="vehicleImage" src="assets/img/default_car.jpg" alt="Vehicle Image" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
+                <img id="vehicleImage" src="/project_xcelrent/public/assets/img/default_car.jpg" alt="Vehicle Image" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">
             </div>
             <div class="vehicle-info">
                 <h4 id="vehicleName">Loading vehicle details...</h4>
@@ -253,42 +297,42 @@ if ($return_date) {
 
         <div class="summary-row">
             <span>Selected Vehicle</span>
-            <span id="selectedVehicle">-</span>
+            <span id="selectedVehicle">Loading...</span>
         </div>
 
         <div class="summary-row">
             <span>Pick-up Date</span>
-            <span id="pickupDate">-</span>
+            <span id="pickupDate"><?php echo $pickup_date ? date('M j, Y g:i A', strtotime($pickup_date)) : 'Not specified'; ?></span>
         </div>
 
         <div class="summary-row">
             <span>Return Date</span>
-            <span id="returnDate">-</span>
+            <span id="returnDate"><?php echo $return_date ? date('M j, Y g:i A', strtotime($return_date)) : 'Not specified'; ?></span>
         </div>
 
         <div class="summary-row">
-            <span>Rental Days</span>
-            <span id="rentalDays">-</span>
+            <span>Rental Period</span>
+            <span id="rentalDays">Calculating...</span>
         </div>
 
         <div class="summary-row">
             <span>Daily Rate</span>
-            <span id="dailyRate">-</span>
+            <span id="dailyRate">₱0.00</span>
         </div>
 
         <div class="summary-row">
             <span>Subtotal</span>
-            <span id="subtotal">-</span>
+            <span id="subtotal">₱0.00</span>
         </div>
 
         <div class="summary-row">
-            <span>Reservation Fee</span>
+            <span>Reservation Fee (Deductible)</span>
             <span id="reservationFee">₱500.00</span>
         </div>
 
         <div class="summary-row total-row">
             <span>Total Amount</span>
-            <span id="totalAmount">-</span>
+            <span id="totalAmount">₱0.00</span>
         </div>
     </div>
 
@@ -313,34 +357,38 @@ if ($return_date) {
             </div>
             <div class="form-group">
                 <label>Phone Number</label>
-                <input type="tel" class="form-control" id="phone" placeholder="Enter your phone number" required>
+                <input type="tel" class="form-control" id="phone" placeholder="09XXXXXXXXX" required>
             </div>
         </div>
 
         <div class="form-row">
             <div class="form-group">
                 <label>Pick-up Location</label>
-                <select class="form-control" id="pickupLocation">
+                <select class="form-control" id="pickupLocation" required>
                     <option value="">Select pick-up location</option>
-                    <option value="quezon_city">Quezon City Branch</option>
-                    <option value="makati">Makati Branch</option>
-                    <option value="pasig">Pasig Branch</option>
+                    <option value="Quezon City">Quezon City Branch</option>
+                    <option value="Manila">Manila Branch</option>
+                    <option value="Makati">Makati Branch</option>
+                    <option value="Pasig">Pasig Branch</option>
+                    <option value="Bulacan">Bulacan Branch</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Return Location</label>
-                <select class="form-control" id="returnLocation">
+                <select class="form-control" id="returnLocation" required>
                     <option value="">Select return location</option>
-                    <option value="quezon_city">Quezon City Branch</option>
-                    <option value="makati">Makati Branch</option>
-                    <option value="pasig">Pasig Branch</option>
+                    <option value="Quezon City">Quezon City Branch</option>
+                    <option value="Manila">Manila Branch</option>
+                    <option value="Makati">Makati Branch</option>
+                    <option value="Pasig">Pasig Branch</option>
+                    <option value="Bulacan">Bulacan Branch</option>
                 </select>
             </div>
         </div>
 
         <div class="form-group">
-            <label>Special Requests</label>
-            <textarea class="form-control" id="specialRequests" placeholder="Any special requests or notes..."></textarea>
+            <label>Special Requests (Optional)</label>
+            <textarea class="form-control" id="specialRequests" rows="3" placeholder="Any special requests or notes..."></textarea>
         </div>
 
         <!-- Payment Method Selection -->
@@ -372,17 +420,18 @@ if ($return_date) {
 
         <!-- QR Code Container -->
         <div class="qr-container" id="qrContainer">
-            <h4>Scan QR Code for Payment</h4>
+            <h4 id="qrTitle">Scan QR Code for Payment</h4>
+            <p id="qrInstruction" style="color: var(--text-muted); margin-bottom: 1rem;">Please scan this QR code with your payment app</p>
             <img id="qrCodeImage" class="qr-image" src="" alt="QR Code">
-            <p id="qrInstruction">Please scan this QR code with your selected payment app</p>
+            <p style="margin-top: 1rem; font-weight: 600;">Total to Pay: <span id="qrAmount" style="color: var(--accent-red); font-size: 1.2rem;">₱0.00</span></p>
         </div>
 
         <!-- Proof of Payment Upload -->
-        <div class="proof-upload" id="proofUpload" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <div class="proof-upload" id="proofUpload" onclick="document.getElementById('proofOfFile').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
             <h4>Upload Proof of Payment</h4>
-            <p>Drag and drop your payment proof here or click to browse</p>
-            <input type="file" id="proofOfFile" accept="image/*,application/pdf" style="display: none;" onchange="handleFileSelect(event)">
-            <button class="btn btn-outline" onclick="document.getElementById('proofOfFile').click()">Select File</button>
+            <p>Drag and drop your payment screenshot here or click to browse</p>
+            <input type="file" id="proofOfFile" accept="image/*" style="display: none;" onchange="handleFileSelect(event)">
+            <button type="button" class="btn btn-outline" style="margin-top: 1rem;">Select File</button>
             <div class="proof-preview" id="proofPreview"></div>
         </div>
 
@@ -391,179 +440,124 @@ if ($return_date) {
 </div>
 
 <script>
-// Get URL parameters
+// Store dates and car ID globally
+let globalCarData = null;
 const urlParams = new URLSearchParams(window.location.search);
 const carId = urlParams.get('car_id');
-const pickupDate = urlParams.get('pickup') || sessionStorage.getItem('pickup_date');
-const returnDate = urlParams.get('return') || sessionStorage.getItem('return_date');
+const pickupDate = '<?php echo $pickup_date; ?>';
+const returnDate = '<?php echo $return_date; ?>';
 
-if (pickupDate && returnDate) {
-    document.getElementById('pickupDate').textContent = pickupDate;
-    document.getElementById('returnDate').textContent = returnDate;
-
-    // Store dates in session storage
-    sessionStorage.setItem('pickup_date', pickupDate);
-    sessionStorage.setItem('return_date', returnDate);
-
-    // Calculate rental days
+// Calculate rental days
+function calculateRentalDays() {
+    if (!pickupDate || !returnDate) return 1;
+    
     const startDate = new Date(pickupDate);
     const endDate = new Date(returnDate);
     const timeDiff = endDate.getTime() - startDate.getTime();
-    const rentalDays = Math.max(1, Math.ceil(timeDiff / (1000 * 3600 * 24)));
-    document.getElementById('rentalDays').textContent = rentalDays;
-
-    // Calculate total amount if car details are available
-    if (carId) {
-        // We'll calculate the total amount after loading car details
-    }
-} else {
-    // If no dates are available, show a message
-    document.getElementById('pickupDate').textContent = 'Not specified';
-    document.getElementById('returnDate').textContent = 'Not specified';
-    document.getElementById('rentalDays').textContent = '0';
+    const days = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    return Math.max(1, days);
 }
 
-// Load car details if car_id is provided
-if (carId) {
-    loadCarDetails(carId);
-} else {
-    // If no car_id, clear the form fields
-    clearFormFields();
-}
-
-function clearFormFields() {
-    document.getElementById('firstName')?.value = '';
-    document.getElementById('lastName')?.value = '';
-    document.getElementById('email')?.value = '';
-    document.getElementById('phone')?.value = '';
-    document.getElementById('pickupLocation')?.value = '';
-    document.getElementById('returnLocation')?.value = '';
-    document.getElementById('specialRequests')?.value = '';
-
-    // Clear payment method selection
-    document.querySelectorAll('.payment-option').forEach(option => {
-        option.classList.remove('selected');
-    });
-
-    // Hide QR container
-    document.getElementById('qrContainer')?.style.display = 'none';
-
-    // Clear proof of payment
-    document.getElementById('proofPreview')?.innerHTML = '';
-}
-
-function loadCarDetails(carId) {
-    // Show loading state
-    document.getElementById('vehicleName').innerHTML = '<div class="loading-spinner">Loading vehicle details...</div>';
-    document.getElementById('selectedVehicle').innerHTML = '<div class="loading-spinner">Loading...</div>';
-
-    // Fetch real car details from the API
-    fetch(`api/get_car_details.php?id=${carId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && data.car) {
-                const car = data.car;
-
-                // Update the booking summary with car details
-                document.getElementById('selectedVehicle').textContent = `${car.brand} ${car.model}`;
-
-                // Update the vehicle details section
-                document.getElementById('vehicleName').innerHTML = `<strong>${car.brand} ${car.model}</strong>`;
-                document.getElementById('vehicleCategory').textContent = car.category || 'N/A';
-                document.getElementById('vehicleSeating').textContent = car.seating || '4';
-                document.getElementById('vehicleFuel').textContent = car.fuel_type || 'N/A';
-                document.getElementById('vehicleTransmission').textContent = car.transmission || 'Automatic';
-                document.getElementById('vehicleLocation').textContent = car.location || 'N/A';
-                document.getElementById('vehiclePlate').textContent = car.plate_number || 'N/A';
-
-                // Update vehicle image if available
-                if (car.car_image) {
-                    document.getElementById('vehicleImage').src = `../${car.car_image}`;
-                }
-
-                // Calculate total amount based on daily rate
-                const rentalDays = parseInt(document.getElementById('rentalDays').textContent) || 1;
-                calculateTotalAmount(rentalDays, car.tier4_daily || 0);
-
-                // Store car details in sessionStorage for later use
-                sessionStorage.setItem('selectedCar', JSON.stringify(car));
-            } else {
-                document.getElementById('selectedVehicle').textContent = 'Car not found';
-                document.getElementById('vehicleName').textContent = 'Car not found';
-            }
-        })
-        .catch(error => {
-            console.error('Error loading car details:', error);
-            document.getElementById('selectedVehicle').textContent = 'Error loading car details';
-            document.getElementById('vehicleName').textContent = 'Error loading details';
-        });
-}
-
-function calculateTotalAmount(days, dailyRate = null) {
-    // Get daily rate from sessionStorage if not provided
-    if (!dailyRate) {
-        const selectedCar = JSON.parse(sessionStorage.getItem('selectedCar') || '{}');
-        dailyRate = selectedCar.tier4_daily || 0;
-    }
-
-    // Calculate rental days based on pickup and return dates
-    const pickupDateStr = sessionStorage.getItem('pickup_date');
-    const returnDateStr = sessionStorage.getItem('return_date');
-
-    if (pickupDateStr && returnDateStr) {
-        const pickupDate = new Date(pickupDateStr);
-        const returnDate = new Date(returnDateStr);
-        const timeDiff = returnDate.getTime() - pickupDate.getTime();
-        days = Math.max(1, Math.ceil(timeDiff / (1000 * 3600 * 24)));
-
-        // Update the rental days display
-        document.getElementById('rentalDays').textContent = days;
-    }
-
-    const subtotal = days * dailyRate;
-    const reservationFee = 500; // Static reservation fee
-    const totalAmount = subtotal + reservationFee;
-
+// Calculate and display total amount
+function calculateTotalAmount(dailyRate) {
+    const rentalDays = calculateRentalDays();
+    const subtotal = dailyRate * rentalDays;
+    const reservationFee = 500;
+    const totalAmount = subtotal; // Reservation fee is deductible from total
+    
+    document.getElementById('rentalDays').textContent = `${rentalDays} day${rentalDays !== 1 ? 's' : ''}`;
     document.getElementById('dailyRate').textContent = `₱${dailyRate.toFixed(2)}`;
     document.getElementById('subtotal').textContent = `₱${subtotal.toFixed(2)}`;
     document.getElementById('totalAmount').textContent = `₱${totalAmount.toFixed(2)}`;
+    document.getElementById('qrAmount').textContent = `₱${totalAmount.toFixed(2)}`;
 }
 
+// Load car details
+async function loadCarDetails(carId) {
+    try {
+        const response = await fetch(`/project_xcelrent/public/api/get_car_details.php?id=${carId}`);
+        const data = await response.json();
+        
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+        
+        globalCarData = data;
+        
+        // Update vehicle name and image
+        const vehicleName = `${data.brand || ''} ${data.model || ''}`.trim() || 'Unknown Vehicle';
+        document.getElementById('vehicleName').textContent = vehicleName;
+        document.getElementById('selectedVehicle').textContent = vehicleName;
+        
+        // Update vehicle image
+        if (data.image) {
+            document.getElementById('vehicleImage').src = `/project_xcelrent/public/${data.image}`;
+        }
+        
+        // Update vehicle specs
+        document.getElementById('vehicleCategory').textContent = data.category || 'N/A';
+        document.getElementById('vehicleSeating').textContent = data.seating || '4';
+        document.getElementById('vehicleFuel').textContent = data.fuel_type || 'N/A';
+        document.getElementById('vehicleTransmission').textContent = data.transmission || 'Automatic';
+        document.getElementById('vehicleLocation').textContent = data.location || 'N/A';
+        document.getElementById('vehiclePlate').textContent = data.plate_number || 'N/A';
+        
+        // Calculate total amount
+        const dailyRate = parseFloat(data.tier4_daily) || 0;
+        calculateTotalAmount(dailyRate);
+        
+    } catch (error) {
+        console.error('Error loading car details:', error);
+        alert('Failed to load car details. Please try again.');
+    }
+}
+
+// Select payment method
 function selectPaymentMethod(method) {
     // Remove selected class from all options
     document.querySelectorAll('.payment-option').forEach(option => {
         option.classList.remove('selected');
     });
-
+    
     // Add selected class to clicked option
     event.currentTarget.classList.add('selected');
-
-    // Show QR code for selected payment method
+    
+    // Show QR code
     const qrContainer = document.getElementById('qrContainer');
     const qrImage = document.getElementById('qrCodeImage');
+    const qrTitle = document.getElementById('qrTitle');
     const qrInstruction = document.getElementById('qrInstruction');
     
-    // Map payment methods to QR code paths
+    // Map payment methods to QR code paths (you need to create these images)
     const qrCodes = {
-        'gcash': 'assets/images/qr_codes/gcash_qr.png',
-        'bdo': 'assets/images/qr_codes/bdo_qr.png',
-        'gotyme': 'assets/images/qr_codes/gotyme_qr.png',
-        'maya': 'assets/images/qr_codes/maya_qr.png',
-        'maribank': 'assets/images/qr_codes/maribank_qr.png'
+        'gcash': '/project_xcelrent/public/assets/img/qr/gcash_qr.png',
+        'bdo': '/project_xcelrent/public/assets/img/qr/bdo_qr.png',
+        'gotyme': '/project_xcelrent/public/assets/img/qr/gotyme_qr.png',
+        'maya': '/project_xcelrent/public/assets/img/qr/maya_qr.png',
+        'maribank': '/project_xcelrent/public/assets/img/qr/maribank_qr.png'
+    };
+    
+    const methodNames = {
+        'gcash': 'GCash',
+        'bdo': 'BDO',
+        'gotyme': 'GoTyme',
+        'maya': 'Maya',
+        'maribank': 'MariBank'
     };
     
     if (qrCodes[method]) {
         qrImage.src = qrCodes[method];
-        qrInstruction.textContent = `Please scan this QR code with ${method.charAt(0).toUpperCase() + method.slice(1)} app`;
+        qrTitle.textContent = `${methodNames[method]} Payment`;
+        qrInstruction.textContent = `Scan this QR code using your ${methodNames[method]} app to complete the payment`;
         qrContainer.style.display = 'block';
-    } else {
-        qrContainer.style.display = 'none';
+        
+        // Store selected payment method
+        sessionStorage.setItem('selectedPaymentMethod', method);
     }
-    
-    // Store selected payment method
-    sessionStorage.setItem('selectedPaymentMethod', method);
 }
 
+// File upload handlers
 function handleDragOver(e) {
     e.preventDefault();
     e.stopPropagation();
@@ -583,22 +577,18 @@ function handleDrop(e) {
     
     const files = e.dataTransfer.files;
     if (files.length) {
-        handleFile(files[0]);
+        document.getElementById('proofOfFile').files = files;
+        handleFileSelect({ target: { files: files } });
     }
 }
 
 function handleFileSelect(e) {
     const file = e.target.files[0];
-    if (file) {
-        handleFile(file);
-    }
-}
-
-function handleFile(file) {
+    if (!file) return;
+    
     // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'application/pdf'];
-    if (!validTypes.includes(file.type)) {
-        alert('Please upload a valid image (JPG, PNG) or PDF file');
+    if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file (JPG, PNG, etc.)');
         return;
     }
     
@@ -612,45 +602,55 @@ function handleFile(file) {
     const reader = new FileReader();
     reader.onload = function(e) {
         const preview = document.getElementById('proofPreview');
-        if (file.type.startsWith('image/')) {
-            preview.innerHTML = `<img src="${e.target.result}" alt="Proof Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">`;
-        } else {
-            preview.innerHTML = `<p>PDF File: ${file.name}</p>`;
-        }
-        
-        // Store file in session storage
-        const fileData = {
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            data: e.target.result
-        };
-        sessionStorage.setItem('proofOfPayment', JSON.stringify(fileData));
+        preview.innerHTML = `
+            <p style="color: var(--accent-red); font-weight: 600; margin-top: 1rem;">File uploaded: ${file.name}</p>
+            <img src="${e.target.result}" alt="Proof Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px; margin-top: 0.5rem;">
+        `;
     };
     reader.readAsDataURL(file);
 }
 
+// Submit booking
 async function submitBooking() {
     // Validate form
-    const firstName = document.getElementById('firstName').value;
-    const lastName = document.getElementById('lastName').value;
-    const email = document.getElementById('email').value;
-    const phone = document.getElementById('phone').value;
+    const firstName = document.getElementById('firstName').value.trim();
+    const lastName = document.getElementById('lastName').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
     const pickupLoc = document.getElementById('pickupLocation').value;
     const returnLoc = document.getElementById('returnLocation').value;
+    const specialRequests = document.getElementById('specialRequests').value.trim();
     const selectedPaymentMethod = sessionStorage.getItem('selectedPaymentMethod');
-    const proofOfFile = document.getElementById('proofOfFile');
-
-    if (!firstName || !lastName || !email || !phone || !pickupLoc || !returnLoc || !selectedPaymentMethod || !proofOfFile.files[0]) {
-        alert('Please fill in all required fields and upload proof of payment');
+    const proofFile = document.getElementById('proofOfFile').files[0];
+    
+    // Validation
+    if (!firstName || !lastName || !email || !phone) {
+        alert('Please fill in all required personal information fields');
         return;
     }
-
-    // Get dates from session storage
-    const pickupDate = sessionStorage.getItem('pickup_date');
-    const returnDate = sessionStorage.getItem('return_date');
-
-    // Create form data for file upload
+    
+    if (!pickupLoc || !returnLoc) {
+        alert('Please select both pickup and return locations');
+        return;
+    }
+    
+    if (!selectedPaymentMethod) {
+        alert('Please select a payment method');
+        return;
+    }
+    
+    if (!proofFile) {
+        alert('Please upload proof of payment');
+        return;
+    }
+    
+    // Validate phone number format
+    if (!/^09\d{9}$/.test(phone)) {
+        alert('Please enter a valid Philippine mobile number (09XXXXXXXXX)');
+        return;
+    }
+    
+    // Create form data
     const formData = new FormData();
     formData.append('car_id', carId);
     formData.append('first_name', firstName);
@@ -659,52 +659,43 @@ async function submitBooking() {
     formData.append('phone', phone);
     formData.append('pickup_location', pickupLoc);
     formData.append('return_location', returnLoc);
-    formData.append('special_requests', document.getElementById('specialRequests').value);
-    formData.append('payment_method', selectedPaymentMethod);
     formData.append('pickup_date', pickupDate);
     formData.append('return_date', returnDate);
-    formData.append('proof_of_payment', proofOfFile.files[0]); // Add the file to form data
-
+    formData.append('special_requests', specialRequests);
+    formData.append('payment_method', selectedPaymentMethod);
+    formData.append('proof_of_payment', proofFile);
+    
     try {
-        const response = await fetch('api/submit_booking.php', {
+        const response = await fetch('/project_xcelrent/public/api/submit_booking.php', {
             method: 'POST',
             body: formData
         });
-
+        
         const data = await response.json();
-
+        
         if (data.success) {
-            alert('Booking submitted successfully! Your reservation is pending approval.');
-
             // Clear session storage
-            sessionStorage.removeItem('selectedCar');
             sessionStorage.removeItem('selectedPaymentMethod');
-            sessionStorage.removeItem('pickup_date');
-            sessionStorage.removeItem('return_date');
-
+            
             // Redirect to confirmation page
-            window.location.href = '?page=confirmation';
+            alert('Booking submitted successfully! Your reservation is pending approval.');
+            window.location.href = '?page=confirmation&booking_id=' + data.booking_id;
         } else {
-            alert('Error submitting booking: ' + data.message);
+            alert('Error: ' + (data.message || 'Failed to submit booking'));
         }
     } catch (error) {
         console.error('Error submitting booking:', error);
-        alert('Error submitting booking: ' + error.message);
+        alert('An error occurred while submitting your booking. Please try again.');
     }
 }
 
-// Load saved data if returning from another page
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    const savedBooking = sessionStorage.getItem('bookingDetails');
-    if (savedBooking) {
-        const details = JSON.parse(savedBooking);
-        if (details.firstName) document.getElementById('firstName').value = details.firstName;
-        if (details.lastName) document.getElementById('lastName').value = details.lastName;
-        if (details.email) document.getElementById('email').value = details.email;
-        if (details.phone) document.getElementById('phone').value = details.phone;
-        if (details.pickupLocation) document.getElementById('pickupLocation').value = details.pickupLocation;
-        if (details.returnLocation) document.getElementById('returnLocation').value = details.returnLocation;
-        if (details.specialRequests) document.getElementById('specialRequests').value = details.specialRequests;
+    if (carId) {
+        loadCarDetails(carId);
+    } else {
+        alert('No car selected. Redirecting to car listings...');
+        window.location.href = '?page=cars';
     }
 });
 </script>
