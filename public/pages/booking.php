@@ -316,7 +316,7 @@ if ($return_date) {
         </div>
 
         <div class="summary-row">
-            <span>Daily Rate</span>
+            <span>Daily Rate <i>(Long-term (>7 days) rate—may vary by location)</i></span>
             <span id="dailyRate">₱0.00</span>
         </div>
 
