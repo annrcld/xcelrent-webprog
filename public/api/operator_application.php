@@ -65,7 +65,15 @@ try {
     $userEmail = $_SESSION['user_email'] ?? '';
     $userFirstName = $_SESSION['user_first_name'] ?? '';
     $userLastName = $_SESSION['user_last_name'] ?? '';
-    $userPhone = $_SESSION['user_phone'] ?? '';
+
+    // Get phone number directly from database to ensure it's available
+    $userPhoneQuery = $conn->prepare("SELECT phone FROM users WHERE id = ?");
+    $userPhoneQuery->bind_param("i", $userId);
+    $userPhoneQuery->execute();
+    $userPhoneResult = $userPhoneQuery->get_result();
+    $userPhoneRow = $userPhoneResult->fetch_assoc();
+    $userPhone = $userPhoneRow['phone'] ?? $_SESSION['user_phone'] ?? '';
+    $userPhoneQuery->close();
 
     // Check if user already has an operator record
     $checkOperatorSql = "SELECT id FROM operators WHERE contact_name = ? OR email = ?";

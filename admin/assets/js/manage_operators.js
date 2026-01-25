@@ -42,7 +42,7 @@ function loadOperators() {
                                             <div class="operator-email">${app.email}</div>
                                         </td>
                                         <td>
-                                            <div class="contact-phone">${app.phone}</div>
+                                            <div class="contact-phone">${app.contact_name}${app.phone ? ' (' + app.phone + ')' : ''}</div>
                                         </td>
                                         <td>
                                             <div class="action-buttons">
@@ -151,8 +151,8 @@ function viewOperatorDetails(operatorId, carId) {
                     <div class="operator-meta">
                         <p><strong>Operator:</strong> ${op.company_name}</p>
                         <p><strong>Contact:</strong> ${op.contact_name}</p>
+                        <p><strong>Phone:</strong> ${op.phone || 'Not provided'}</p>
                         <p><strong>Email:</strong> ${op.email}</p>
-                        <p><strong>Phone:</strong> ${op.phone}</p>
                         <p><strong>Plate Number:</strong> ${car.plate_number}</p>
                         <p><strong>Category:</strong> ${car.category}</p>
                         <p><strong>Seating:</strong> ${car.seating}</p>

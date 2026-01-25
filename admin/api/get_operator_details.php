@@ -13,8 +13,9 @@ if (!$operatorId || !$carId) {
 
 // Get operator details
 $operatorSql = "
-    SELECT o.*
+    SELECT o.id, o.company_name, o.contact_name, o.email, COALESCE(o.phone, u.phone) as phone, o.verified, o.created_at as operator_created_at
     FROM operators o
+    LEFT JOIN users u ON o.email = u.email
     WHERE o.id = ?
 ";
 
