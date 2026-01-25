@@ -133,47 +133,67 @@
 
 .btn {
     padding: 6px 12px;
+    font-size: 12px;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 13px;
+    font-weight: bold;
     transition: all 0.2s;
 }
 
-.btn-blue {
-    background: #3b82f6;
+.btn-edit {
+    background: #0066cc;
     color: white;
 }
 
-.btn-blue:hover {
-    background: #2563eb;
+.btn-edit:hover {
+    background: #0052a3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 102, 204, 0.3);
 }
 
-.btn-green {
-    background: #10b981;
-    color: white;
-}
-
-.btn-green:hover {
-    background: #059669;
-}
-
-.btn-red {
-    background: #ef4444;
-    color: white;
-}
-
-.btn-red:hover {
+.btn-delete {
     background: #dc2626;
-}
-
-.btn-black {
-    background: #1f2937;
     color: white;
 }
 
-.btn-black:hover {
-    background: #111827;
+.btn-delete:hover {
+    background: #b91c1c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+}
+
+.btn-view {
+    background: #666;
+    color: white;
+}
+
+.btn-view:hover {
+    background: #555;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 102, 102, 0.3);
+}
+
+.btn-approve {
+    background: #28a745;
+    color: white;
+}
+
+.btn-approve:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
+}
+
+.btn-reject {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-reject:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
 }
 
 .status-badge {

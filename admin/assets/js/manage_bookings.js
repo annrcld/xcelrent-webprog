@@ -31,10 +31,10 @@ function loadBookings() {
                 
                 // Show approve/reject only for pending bookings
                 const actionButtons = b.status === 'pending' ? `
-                    <button class="btn btn-green" onclick="approveBooking(${b.id})" title="Approve Booking">
+                    <button class="btn btn-approve" onclick="approveBooking(${b.id})" title="Approve Booking">
                         <i data-lucide="check"></i> Approve
                     </button>
-                    <button class="btn btn-red" onclick="rejectBooking(${b.id})" title="Reject Booking">
+                    <button class="btn btn-reject" onclick="rejectBooking(${b.id})" title="Reject Booking">
                         <i data-lucide="x"></i> Reject
                     </button>
                 ` : '';
@@ -58,7 +58,7 @@ function loadBookings() {
                         <td><span class="status-badge ${statusClass}">${b.status}</span></td>
                         <td>
                             <div class="action-buttons">
-                                <button class="btn btn-black" onclick="viewPaymentProof(${b.id}, '${b.proof_of_payment || ''}')" title="View Payment Proof">
+                                <button class="btn btn-view" onclick="viewPaymentProof(${b.id}, '${b.proof_of_payment || ''}')" title="View Payment Proof">
                                     <i data-lucide="receipt"></i> Payment
                                 </button>
                                 ${actionButtons}

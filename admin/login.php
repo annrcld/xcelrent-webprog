@@ -43,10 +43,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         body { background: #121212; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .login-card { background: white; padding: 40px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border-top: 5px solid #e63946; }
+        .login-card { background: white; padding: 40px; border-radius: 12px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border-top: 5px solid #dc2626; }
         .login-card h2 { text-align: center; margin-bottom: 25px; font-weight: 800; letter-spacing: -1px; }
-        .login-card h2 span { color: #e63946; }
-        .error-msg { color: #e63946; background: #ffeef0; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; text-align: center; }
+        .login-card h2 span { color: #dc2626; }
+        .error-msg { color: #dc2626; background: #ffeef0; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 14px; text-align: center; }
     </style>
 </head>
 <body>

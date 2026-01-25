@@ -27,7 +27,7 @@ function loadDashboard() {
                         <div style="font-weight: bold;">${b.brand} ${b.model} (${b.plate_number})</div>
                         <div style="color: #666; font-size: 14px;">${b.first_name} ${b.last_name}</div>
                         <div style="color: #666; font-size: 13px; margin: 5px 0;">${new Date(b.start_date).toLocaleString()} → ${new Date(b.end_date).toLocaleString()}</div>
-                        <div><span style="background: #e63946; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${b.status.toUpperCase()}</span> ₱${Number(b.total_amount).toLocaleString('en-PH', {minimumFractionDigits: 2})}</div>
+                        <div><span style="background: #dc2626; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">${b.status.toUpperCase()}</span> ₱${Number(b.total_amount).toLocaleString('en-PH', {minimumFractionDigits: 2})}</div>
                     </div>
                 `).join('');
             }
