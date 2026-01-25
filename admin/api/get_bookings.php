@@ -1,4 +1,5 @@
 <?php
+// admin/api/get_bookings.php
 header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/../includes/config.php';
 
@@ -6,13 +7,12 @@ $status = $_GET['status'] ?? '';
 
 $sql = "
     SELECT b.id, b.start_date, b.end_date, b.total_amount, b.status, b.created_at,
+           b.proof_of_payment,
            u.id as user_id, u.first_name, u.last_name, u.email, u.phone,
-           c.id as car_id, c.brand, c.model, c.plate_number, c.location,
-           p.id as payment_id, p.status as payment_status, p.proof_path
+           c.id as car_id, c.brand, c.model, c.plate_number, c.location
     FROM bookings b
     JOIN users u ON b.user_id = u.id
     JOIN cars c ON b.car_id = c.id
-    LEFT JOIN payments p ON b.id = p.booking_id
     WHERE 1=1
 ";
 
