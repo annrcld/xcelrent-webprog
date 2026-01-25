@@ -155,6 +155,22 @@
             </div>
         </div>
 
+        <div class="form-section">
+            <h3>Car Image</h3>
+            <div class="form-row">
+                <div class="image-preview-container" style="width: 100%; text-align: center; margin-bottom: 15px;">
+                    <img id="currentImagePreview" src="" alt="Current Car Image" style="max-width: 300px; max-height: 200px; object-fit: cover; border: 1px solid #ddd; border-radius: 4px; display: none;">
+                    <div id="noImagePlaceholder" style="padding: 40px; border: 2px dashed #ccc; border-radius: 4px; display: block;">
+                        No image uploaded yet
+                    </div>
+                </div>
+                <div class="file-group">
+                    <label>Upload New Image</label>
+                    <input type="file" name="car_image" accept="image/*" onchange="previewImage(this)">
+                </div>
+            </div>
+        </div>
+
         <button type="submit" id="submitBtn" class="btn btn-red submit-btn">Save Vehicle to Inventory</button>
     </form>
 </section>
@@ -209,15 +225,44 @@ function loadCarData(id) {
             document.querySelector('[name="tier3_24hrs"]').value = car.tier3_24hrs || '';
             document.querySelector('[name="tier4_daily"]').value = car.tier4_daily || '';
 
-            // Optional: Show image preview if available
-            if (car.car_image) {
-                // You can add an image preview here if needed
+            // Show image preview if available
+            if (car.image) {
+                const imgPreview = document.getElementById('currentImagePreview');
+                const noImagePlaceholder = document.getElementById('noImagePlaceholder');
+
+                imgPreview.src = '../' + car.image;  // Adjust path as needed
+                imgPreview.style.display = 'block';
+                noImagePlaceholder.style.display = 'none';
+            } else {
+                const imgPreview = document.getElementById('currentImagePreview');
+                const noImagePlaceholder = document.getElementById('noImagePlaceholder');
+
+                imgPreview.style.display = 'none';
+                noImagePlaceholder.style.display = 'block';
             }
         })
         .catch(err => {
             alert('Error loading car data.');
             console.error(err);
         });
+}
+
+// Image preview function
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            const imgPreview = document.getElementById('currentImagePreview');
+            const noImagePlaceholder = document.getElementById('noImagePlaceholder');
+
+            imgPreview.src = e.target.result;
+            imgPreview.style.display = 'block';
+            noImagePlaceholder.style.display = 'none';
+        }
+
+        reader.readAsDataURL(input.files[0]);
+    }
 }
 
 // Handle form submission

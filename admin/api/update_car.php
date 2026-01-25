@@ -63,6 +63,98 @@ try {
 
     $stmt->execute();
 
+    // Handle car image upload if provided
+    if (!empty($_FILES['car_image']['name'])) {
+        $imageFile = $_FILES['car_image'];
+
+        // Validate file type
+        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!in_array($imageFile['type'], $allowedTypes)) {
+            throw new Exception("Invalid image type. Only JPG, PNG, and GIF files are allowed.");
+        }
+
+        // Validate file size (5MB max)
+        if ($imageFile['size'] > 5 * 1024 * 1024) {
+            throw new Exception("Image file size exceeds 5MB limit.");
+        }
+
+        // Create upload directory if it doesn't exist
+        $uploadDir = __DIR__ . '/../uploads/cars/';
+        if (!is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0755, true)) {
+                throw new Exception("Failed to create upload directory.");
+            }
+        }
+
+        // Generate unique filename
+        $fileExtension = strtolower(pathinfo($imageFile['name'], PATHINFO_EXTENSION));
+        $newFileName = 'car_' . $car_id . '_' . time() . '_' . uniqid() . '.' . $fileExtension;
+        $destPath = $uploadDir . $newFileName;
+        $relativePath = 'uploads/cars/' . $newFileName;
+
+        // Move uploaded file
+        if (!move_uploaded_file($imageFile['tmp_name'], $destPath)) {
+            throw new Exception("Failed to upload image file.");
+        }
+
+        // Update the car's image in the database
+        $updateImageStmt = $conn->prepare("UPDATE cars SET image = ? WHERE id = ?");
+        $updateImageStmt->bind_param("si", $relativePath, $car_id);
+        $updateImageStmt->execute();
+        $updateImageStmt->close();
+
+        // Update the car_photos table to set this as the primary image
+        // First, set all photos for this car as non-primary
+        $resetPrimaryStmt = $conn->prepare("UPDATE car_photos SET is_primary = 0 WHERE car_id = ?");
+        $resetPrimaryStmt->bind_param("i", $car_id);
+        $resetPrimaryStmt->execute();
+        $resetPrimaryStmt->close();
+
+        // Check if a photo record already exists for this car with this image path
+        $checkPhotoStmt = $conn->prepare("SELECT id FROM car_photos WHERE car_id = ? AND file_path = ?");
+        $checkPhotoStmt->bind_param("is", $car_id, $relativePath);
+        $checkPhotoStmt->execute();
+        $checkResult = $checkPhotoStmt->get_result();
+
+        if ($checkResult->num_rows > 0) {
+            // Update existing photo record to be primary
+            $updatePhotoStmt = $conn->prepare("UPDATE car_photos SET is_primary = 1 WHERE car_id = ? AND file_path = ?");
+            $updatePhotoStmt->bind_param("is", $car_id, $relativePath);
+            $updatePhotoStmt->execute();
+            $updatePhotoStmt->close();
+        } else {
+            // Insert new photo record as primary
+            $insertPhotoStmt = $conn->prepare("INSERT INTO car_photos (car_id, file_path, is_primary) VALUES (?, ?, 1)");
+            $insertPhotoStmt->bind_param("is", $car_id, $relativePath);
+            $insertPhotoStmt->execute();
+            $insertPhotoStmt->close();
+        }
+        $checkPhotoStmt->close();
+    } else {
+        // If no new image uploaded, ensure the existing image is properly set as primary
+        // Get the current primary image for this car
+        $getImageStmt = $conn->prepare("SELECT image FROM cars WHERE id = ?");
+        $getImageStmt->bind_param("i", $car_id);
+        $getImageStmt->execute();
+        $imageResult = $getImageStmt->get_result();
+        $carData = $imageResult->fetch_assoc();
+        $currentImage = $carData['image'] ?? null;
+
+        if ($currentImage) {
+            // Set all photos for this car as non-primary
+            $resetPrimaryStmt = $conn->prepare("UPDATE car_photos SET is_primary = 0 WHERE car_id = ?");
+            $resetPrimaryStmt->bind_param("i", $car_id);
+            $resetPrimaryStmt->execute();
+            $resetPrimaryStmt->close();
+
+            // Find the photo record that matches the current image and set it as primary
+            $setPrimaryStmt = $conn->prepare("UPDATE car_photos SET is_primary = 1 WHERE car_id = ? AND file_path = ?");
+            $setPrimaryStmt->bind_param("is", $car_id, $currentImage);
+            $setPrimaryStmt->execute();
+            $setPrimaryStmt->close();
+        }
+    }
+
     // Handle document uploads (same as add_car.php)
     $docFiles = [
         'or_file'       => 'Official Receipt (OR)',

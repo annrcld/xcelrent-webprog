@@ -65,6 +65,53 @@ try {
     $stmt->execute();
     $car_id = $conn->insert_id;
 
+    // Handle car image upload if provided
+    if (!empty($_FILES['car_image']['name'])) {
+        $imageFile = $_FILES['car_image'];
+
+        // Validate file type
+        $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        if (!in_array($imageFile['type'], $allowedTypes)) {
+            throw new Exception("Invalid image type. Only JPG, PNG, and GIF files are allowed.");
+        }
+
+        // Validate file size (5MB max)
+        if ($imageFile['size'] > 5 * 1024 * 1024) {
+            throw new Exception("Image file size exceeds 5MB limit.");
+        }
+
+        // Create upload directory if it doesn't exist
+        $uploadDir = __DIR__ . '/../uploads/cars/';
+        if (!is_dir($uploadDir)) {
+            if (!mkdir($uploadDir, 0755, true)) {
+                throw new Exception("Failed to create upload directory.");
+            }
+        }
+
+        // Generate unique filename
+        $fileExtension = strtolower(pathinfo($imageFile['name'], PATHINFO_EXTENSION));
+        $newFileName = 'car_' . $car_id . '_' . time() . '_' . uniqid() . '.' . $fileExtension;
+        $destPath = $uploadDir . $newFileName;
+        $relativePath = 'uploads/cars/' . $newFileName;
+
+        // Move uploaded file
+        if (!move_uploaded_file($imageFile['tmp_name'], $destPath)) {
+            throw new Exception("Failed to upload image file.");
+        }
+
+        // Update the car's image in the database
+        $updateImageStmt = $conn->prepare("UPDATE cars SET image = ? WHERE id = ?");
+        $updateImageStmt->bind_param("si", $relativePath, $car_id);
+        $updateImageStmt->execute();
+        $updateImageStmt->close();
+
+        // Add the image to car_photos table as primary
+        $insertPhotoStmt = $conn->prepare("INSERT INTO car_photos (car_id, file_path, is_primary) VALUES (?, ?, 1)");
+        $insertPhotoStmt->bind_param("is", $car_id, $relativePath);
+        $insertPhotoStmt->execute();
+        $insertPhotoStmt->close();
+    }
+
     // 5. Handle Document Uploads
     $docFiles = [
         'or_file'       => 'Official Receipt (OR)',
