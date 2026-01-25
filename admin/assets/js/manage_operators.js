@@ -1,4 +1,4 @@
-// assets/js/manage_operators.js
+// admin/assets/js/manage_operators.js
 
 function loadOperators() {
     fetch('api/get_operators.php')
@@ -14,7 +14,6 @@ function loadOperators() {
                     return;
                 }
 
-                // Create table structure for car applications (one row per car application)
                 container.innerHTML = `
                     <table class="data-table">
                         <thead>
@@ -27,7 +26,6 @@ function loadOperators() {
                         </thead>
                         <tbody>
                             ${operators.map(app => {
-                                // Combine brand and model for car name
                                 const carName = `${app.brand || 'N/A'} ${app.model || 'N/A'}`;
 
                                 return `
@@ -69,19 +67,30 @@ function loadOperators() {
 async function approveOperator(operatorId, carId) {
     if (confirm('Approve this car application?')) {
         try {
+            const formData = new FormData();
+            formData.append('operator_id', operatorId);
+            formData.append('car_id', carId);
+
             const response = await fetch('api/approve_operator.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `operator_id=${operatorId}&car_id=${carId}`
+                body: formData
             });
 
-            const data = await response.json();
+            const responseText = await response.text();
+            console.log('Approve API Response:', responseText);
+
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                console.error('JSON Parse Error:', e);
+                alert('Server error: ' + responseText.substring(0, 200));
+                return;
+            }
 
             if (data.success) {
                 alert('Car application approved successfully! Car is now live and visible to customers.');
-                loadOperators(); // Refresh the operator applications list
+                loadOperators();
             } else {
                 alert('Error: ' + data.message);
             }
@@ -95,7 +104,7 @@ async function approveOperator(operatorId, carId) {
 async function rejectOperator(operatorId, carId) {
     const reason = prompt('Enter reason for rejection (optional):');
 
-    if (reason !== null) { // User didn't cancel
+    if (reason !== null) {
         try {
             const formData = new FormData();
             formData.append('operator_id', operatorId);
@@ -123,11 +132,9 @@ async function rejectOperator(operatorId, carId) {
 }
 
 function viewOperatorDetails(operatorId, carId) {
-    // Show loading state
     const container = document.getElementById('operatorApplicationsContainer');
     container.innerHTML = '<div class="loading">Loading car application details...</div>';
 
-    // Fetch car application details
     fetch(`api/get_operator_details.php?operator_id=${operatorId}&car_id=${carId}`)
         .then(response => response.json())
         .then(data => {
@@ -137,10 +144,9 @@ function viewOperatorDetails(operatorId, carId) {
             }
 
             const op = data.operator;
-            const car = data.car; // Single car details
+            const car = data.car;
             const docs = data.documents;
 
-            // Build HTML for car application details
             let html = `
                 <div class="operator-details-back">
                     <button class="btn btn-black" onclick="loadOperators()">← Back to Applications</button>
@@ -165,15 +171,21 @@ function viewOperatorDetails(operatorId, carId) {
                 </div>
 
                 <div class="operator-section">
-                    <h3>Car Photos (${car.total_photos})</h3>
+                    <h3>Car Photos (${car.total_photos || 0})</h3>
                     <div class="photo-grid">
             `;
 
             if (car.photos && car.photos.length > 0) {
                 car.photos.forEach(photo => {
+                    // Fix the image path - remove leading slash if present
+                    let imagePath = photo.file_path;
+                    if (imagePath.startsWith('/')) {
+                        imagePath = imagePath.substring(1);
+                    }
+                    
                     html += `
                         <div class="photo-item ${photo.is_primary ? 'primary-photo' : ''}">
-                            <img src="../${photo.file_path}" alt="Car photo" style="max-width: 150px; max-height: 150px;">
+                            <img src="/project_xcelrent/public/${imagePath}" alt="Car photo" style="max-width: 150px; max-height: 150px; object-fit: cover;">
                             ${photo.is_primary ? '<span class="primary-label">Primary</span>' : ''}
                         </div>
                     `;
@@ -192,10 +204,16 @@ function viewOperatorDetails(operatorId, carId) {
             `;
 
             docs.forEach(doc => {
+                // Fix document path
+                let docPath = doc.file_path;
+                if (docPath.startsWith('/')) {
+                    docPath = docPath.substring(1);
+                }
+                
                 html += `
                     <div class="document-item">
                         <span class="doc-type">${doc.doc_type}</span>
-                        <a href="../${doc.file_path}" target="_blank" class="btn btn-sm">View Document</a>
+                        <a href="/project_xcelrent/public/${docPath}" target="_blank" class="btn btn-sm">View Document</a>
                         <span class="doc-status">Verified: ${doc.verified ? 'Yes' : 'No'}</span>
                     </div>
                 `;
