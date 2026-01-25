@@ -60,6 +60,17 @@ function send_notification($to, $subject, $message) {
     return mail($to, $subject, $message, $headers);
 }
 
+
+function send_notification($to, $subject, $message) {
+    $headers = "From: noreply@" . $_SERVER['HTTP_HOST'] . "\r\n";
+    $headers .= "Reply-To: noreply@" . $_SERVER['HTTP_HOST'] . "\r\n";
+    $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+    
+    // Suppress mail errors for local development
+    return @mail($to, $subject, $message, $headers);
+}
+
+
 /**
  * Hash password
  */
@@ -92,7 +103,7 @@ function redirect($page) {
 /**
  * Get current user info
  */
-function get_current_user() {
+function get_logged_in_user() {  // Changed from get_current_user()
     if (isset($_SESSION['user_id'])) {
         return $_SESSION;
     }

@@ -116,7 +116,17 @@ async function rejectOperator(operatorId, carId) {
                 body: formData
             });
 
-            const data = await response.json();
+            const responseText = await response.text();
+            console.log('Reject API Response:', responseText);
+
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                console.error('JSON Parse Error:', e);
+                alert('Server error: ' + responseText.substring(0, 200));
+                return;
+            }
 
             if (data.success) {
                 alert('Car application rejected successfully!' + (data.warning ? '\nWarning: ' + data.warning : ''));

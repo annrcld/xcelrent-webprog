@@ -80,7 +80,7 @@ function is_logged_in() {
 /**
  * Get current user info
  */
-function get_current_user() {
+function get_logged_user() {
     if (isset($_SESSION['user_id'])) {
         global $pdo;
         try {

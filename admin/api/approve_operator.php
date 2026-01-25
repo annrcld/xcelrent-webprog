@@ -1,34 +1,35 @@
+
 <?php
+// admin/api/approve_operator.php
+ob_start(); // Start output buffering to catch any errors
+
+ini_set('display_errors', 0);
+error_reporting(0);
+
 header('Content-Type: application/json; charset=utf-8');
-require_once __DIR__ . '/../includes/config.php';
-require_once __DIR__ . '/../../includes/functions.php';
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
-    exit;
-}
-
-$operatorId = intval($_POST['operator_id'] ?? 0);
-$carId = intval($_POST['car_id'] ?? 0);
-
-if (!$operatorId || !$carId) {
-    http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Both Operator ID and Car ID are required']);
-    exit;
-}
 
 try {
-    // Get operator details for email notification
+    require_once __DIR__ . '/../includes/config.php';
+
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Method not allowed');
+    }
+
+    $operatorId = intval($_POST['operator_id'] ?? 0);
+    $carId = intval($_POST['car_id'] ?? 0);
+
+    if (!$operatorId || !$carId) {
+        throw new Exception('Both Operator ID and Car ID are required');
+    }
+
+    // Get operator details
     $stmt = $conn->prepare("SELECT company_name, contact_name, email FROM operators WHERE id = ?");
     $stmt->bind_param("i", $operatorId);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows === 0) {
-        http_response_code(404);
-        echo json_encode(['success' => false, 'message' => 'Operator not found']);
-        exit;
+        throw new Exception('Operator not found');
     }
 
     $operator = $result->fetch_assoc();
@@ -48,23 +49,27 @@ try {
         throw new Exception("No car was updated - car may not exist or belong to this operator");
     }
 
-    // Send approval email notification
-    $subject = "Car Application Approved - Xcelrent Car Rental";
-    $message = "
-    <html>
-    <body>
-        <h2>Car Application Approved</h2>
-        <p>Dear {$operator['contact_name']},</p>
-        <p>Congratulations! Your car application has been approved.</p>
-        <p>Your car is now live and visible to customers on our platform.</p>
-        <p>Thank you for partnering with Xcelrent Car Rental.</p>
-        <br>
-        <p>Best regards,<br>The Xcelrent Team</p>
-    </body>
-    </html>
-    ";
-
-    $emailSent = send_notification($operator['email'], $subject, $message);
+    // Try to send email (don't let it break the response)
+    $emailSent = false;
+    try {
+        $subject = "Car Application Approved - Xcelrent Car Rental";
+        $message = "<html><body>
+            <h2>Car Application Approved</h2>
+            <p>Dear {$operator['contact_name']},</p>
+            <p>Congratulations! Your car application has been approved.</p>
+            <p>Your car is now live and visible to customers on our platform.</p>
+            <p>Thank you for partnering with Xcelrent Car Rental.</p>
+            <br>
+            <p>Best regards,<br>The Xcelrent Team</p>
+        </body></html>";
+        
+        $headers = "From: noreply@xcelrent.com\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        
+        $emailSent = @mail($operator['email'], $subject, $message, $headers);
+    } catch (Exception $e) {
+        // Email failed, but that's okay
+    }
 
     $response = [
         'success' => true,
@@ -75,12 +80,16 @@ try {
         $response['warning'] = 'Application approved but email notification failed to send';
     }
 
+    ob_end_clean(); // Clear any buffered output
     echo json_encode($response);
 
 } catch (Exception $e) {
+    ob_end_clean(); // Clear any buffered output
     http_response_code(500);
-    echo json_encode(['success' => false, 'message' => 'Error approving car application: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }
 
-$conn->close();
+if (isset($conn)) {
+    $conn->close();
+}
 ?>
